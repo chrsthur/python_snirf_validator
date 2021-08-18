@@ -183,12 +183,12 @@ def hdfgetdata(gID,field):
         if h5py.check_string_dtype(val.dtype):
             # string
             if val.len()==1:
-                val=val[0].tostring().decode('ascii')
+                val=val[0].tobytes().decode('ascii')
                 return val
             else:
                 val2=[];
                 for x in val:
-                    val2.append(x.tostring().decode('ascii'))
+                    val2.append(x.tobytes().decode('ascii'))
                 val2=np.array(val2)
                 return val2
         val=np.array(val)
@@ -251,6 +251,18 @@ def getoptionalfieldsLst():
      Optional.append("/nirs\d*/probe/useLocalIndex")
      Optional.append("/nirs\d*/aux\d*/timeOffset")
      Optional.append("/nirs\d*/stim\d*/dataLabels")
+     Optional.append("/nirs\d*/metaDataTags/ManufacturerName")
+     Optional.append("/nirs\d*/metaDataTags/ManufacturerName")
+     Optional.append("/nirs\d*/metaDataTags/Model")
+     Optional.append("/nirs\d*/metaDataTags/SubjectName")
+     Optional.append("/nirs\d*/metaDataTags/DateOfBirth")
+     Optional.append("/nirs\d*/metaDataTags/AcquisitionStartTime")
+     Optional.append("/nirs\d*/metaDataTags/StudyID")
+     Optional.append("/nirs\d*/metaDataTags/StudyDescription")
+     Optional.append("/nirs\d*/metaDataTags/AccessionNumber")
+     Optional.append("/nirs\d*/metaDataTags/InstanceNumber")
+     Optional.append("/nirs\d*/metaDataTags/CalibrationFileName")
+     Optional.append("/nirs\d*/metaDataTags/UnixTime")
      return Optional
 
 def isrequired(fld):
@@ -316,12 +328,12 @@ def validate(filename,fileOut=None):
             if h5py.check_string_dtype(val.dtype):
                 # string
                 if val.len()==1:
-                    val=val[0].tostring().decode('ascii')
+                    val=val[0].tobytes().decode('ascii')
                     print('\tHDF5-STRING: {0}'.format(val))
                 else:
                     val2=[];
                     for y in val:
-                        val2.append(y.tostring().decode('ascii'))
+                        val2.append(y.tobytes().decode('ascii'))
                     val2=np.array(val2)
                     print('\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
             else:
@@ -394,12 +406,12 @@ def validate(filename,fileOut=None):
             if h5py.check_string_dtype(val.dtype):
                 # string
                 if val.len()==1:
-                    val=val[0].tostring().decode('ascii')
+                    val=val[0].tobytes().decode('ascii')
                     text_file.write('\n' + '\tHDF5-STRING: {0}'.format(val))
                 else:
                     val2=[];
                     for y in val:
-                        val2.append(y.tostring().decode('ascii'))
+                        val2.append(y.tobytes().decode('ascii'))
                     val2=np.array(val2)
                     text_file.write('\n' + '\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
             else:
