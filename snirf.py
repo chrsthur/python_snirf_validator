@@ -6,7 +6,6 @@ Created on Wed Jun  3 13:28:35 2020
 @author: theodorehuppert
 """
 
-
 import h5py as h5py
 import numpy as np
 import re
@@ -60,7 +59,6 @@ class aux:
 class stim:
     name=None
     data=None
-    
 
 class snirf:
     filename=None
@@ -70,8 +68,7 @@ class snirf:
     probe=None
     aux=None
     metaDataTags=None
-    
-   
+
 def read_from_file(filename):
      fileID = h5py.File(filename, 'r')
      formatVersion=hdfgetdata(fileID,"/formatVersion")
@@ -95,37 +92,34 @@ def read_from_file(filename):
                      a.aux.append(ax)
                  if 'stim' in x2:
                      ax = read_stim(fileID['/'][x][x2])
-                     a.stim.append(ax)   
-                     
+                     a.stim.append(ax)
+
              a.stim=np.array(a.stim)
              a.data=np.array(a.data)
              a.aux=np.array(a.aux)
              s.append(a)
      if len(s)==1:
          s=s[0]
-             
+
      return s
-             
-             
 
 def read_data(gID):
     d = data
-    
+
     d.dataTimeSeries =hdfgetdata(gID,'dataTimeSeries')
     d.time=hdfgetdata(gID,'time')
     d.measurementList=[];
     for fld in gID:
         if 'measurementList' in fld:
             d.measurementList=read_measurementList(gID[fld])
-    
+
     d.measurementList=np.array(measurementList)
-    
+
     return d
-    
-    
+
 def read_probe(gID):
     p=probe
-    
+
     p.wavelengths=hdfgetdata(gID,'wavelengths')
     p.wavelengthsEmission=hdfgetdata(gID,'wavelengthsEmission')
     p.sourcePos2D=hdfgetdata(gID,'sourcePos2D')
@@ -143,8 +137,8 @@ def read_probe(gID):
     p.landmarkPos2D=hdfgetdata(gID,'landmarkPos2D')
     p.landmarkPos3D=hdfgetdata(gID,'landmarkPos3D')
     p.landmarkLabels=hdfgetdata(gID,'landmarkLabels')
-             
-    
+
+
     return p
 
 def read_aux(gID):
@@ -153,21 +147,20 @@ def read_aux(gID):
     a.dataTimeSeries=hdfgetdata(gID,'dataTimeSeries')
     a.time=hdfgetdata(gID,'time')
     a.timeOffSet=hdfgetdata(gID,'timeOffSet')
-    
+
     return a
 
-def read_stim(gID):    
+def read_stim(gID):
     s=stim
     s.name=hdfgetdata(gID,'name')
-    s.data=hdfgetdata(gID,'data')   
-    return s        
-         
-         
+    s.data=hdfgetdata(gID,'data')
+    return s
+
 def read_measurementList(gID):
     m=measurementList
-    
-    
-    
+
+
+
     m.sourceIndex=hdfgetdata(gID,'sourceIndex')
     m.detectorIndex=hdfgetdata(gID,'detectorIndex')
     m.wavelengthIndex=hdfgetdata(gID,'wavelengthIndex')
@@ -179,15 +172,14 @@ def read_measurementList(gID):
     m.sourcePower=hdfgetdata(gID,'sourcePower')
     m.detectorGain=hdfgetdata(gID,'detectorGain')
     m.moduleIndex=hdfgetdata(gID,'moduleIndex')
-    
+
     return m
 
-    
 def hdfgetdata(gID,field):
         val = gID.get(field)
         if val is None:
             return val
-        
+
         if h5py.check_string_dtype(val.dtype):
             # string
             if val.len()==1:
@@ -200,46 +192,50 @@ def hdfgetdata(gID,field):
                 val2=np.array(val2)
                 return val2
         val=np.array(val)
-        
+
         if(val.ndim==1 and len(val)==1):
-            val=val[0]    
-        
+            val=val[0]
+
         return val
-
-
 
 def getrequiredfieldsLst():
      Required=[];
      Required.append("/formatVersion")
+     Required.append("/nirs\d*/metaDataTags/SubjectID")
+     Required.append("/nirs\d*/metaDataTags/MeasurementDate")
+     Required.append("/nirs\d*/metaDataTags/MeasurementTime")
+     Required.append("/nirs\d*/metaDataTags/LengthUnit")
+     Required.append("/nirs\d*/metaDataTags/TimeUnit")
+     Required.append("/nirs\d*/metaDataTags/FrequencyUnit")
      Required.append("/nirs\d*/data\d*/dataTimeSeries")
      Required.append("/nirs\d*/data\d*/time")
      Required.append("/nirs\d*/data\d*/measurementList\d*/sourceIndex")
      Required.append("/nirs\d*/data\d*/measurementList\d*/detectorIndex")
      Required.append("/nirs\d*/data\d*/measurementList\d*/wavelengthIndex")
      Required.append("/nirs\d*/data\d*/measurementList\d*/dataType")
-     Required.append("/nirs\d*/data\d*/measurementList\d*/dataTypeIndex")       
-     Required.append("/nirs\d*/probe/sourcePos\d*")
-     Required.append("/nirs\d*/probe/detectorPos\d*")
-     return Required        
-            
+     Required.append("/nirs\d*/data\d*/measurementList\d*/dataTypeIndex")
+     Required.append("/nirs\d*/probe/wavelengths")
+     Required.append("/nirs\d*/probe/sourcePos2D")
+     Required.append("/nirs\d*/probe/detectorPos2D")
+     Required.append("/nirs\d*/stim\d*/name")
+     Required.append("/nirs\d*/stim\d*/data")
+     Required.append("/nirs\d*/aux\d*/name")
+     Required.append("/nirs\d*/aux\d*/dataTimeSeries")
+     Required.append("/nirs\d*/aux\d*/time")
+     return Required
+
 def getoptionalfieldsLst():
      Optional=[]
-     Optional.append("/nirs\d*/metaDataTags/\w*")
+     Optional.append("/nirs\d*/data\w*/measurementList\d*/wavelengthActual")
+     Optional.append("/nirs\d*/data\w*/measurementList\d*/wavelengthEmissionActual")
+     Optional.append("/nirs\d*/data\d*/measurementList\d*/dataTypeLabel")
      Optional.append("/nirs\d*/data\w*/measurementList\d*/sourcePower")
      Optional.append("/nirs\d*/data\w*/measurementList\d*/detectorGain")
      Optional.append("/nirs\d*/data\w*/measurementList\d*/moduleIndex")
-     Optional.append("/nirs\d*/data\d*/measurementList\d*/dataTypeLabel")
-     Optional.append("/nirs\d*/stim\w*/name")
-     Optional.append("/nirs\d*/stim\w*/data")
-     Optional.append("/nirs\d*/probe/wavelengths")
-     Optional.append("/nirs\d*/aux\d*/name")
-     Optional.append("/nirs\d*/aux\d*/dataTimeSeries")
-     Optional.append("/nirs\d*/aux\d*/time")
-     Optional.append("/nirs\d*/aux\d*/timeOffset")
+     Optional.append("/nirs\d*/data\w*/measurementList\d*/sourceModuleIndex")
+     Optional.append("/nirs\d*/data\w*/measurementList\d*/detectorModuleIndex")
      Optional.append("/nirs\d*/probe/wavelengthsEmission")
-     Optional.append("/nirs\d*/probe/sourcePos2D")
      Optional.append("/nirs\d*/probe/sourcePos3D")
-     Optional.append("/nirs\d*/probe/detectorPos2D")
      Optional.append("/nirs\d*/probe/detectorPos3D")
      Optional.append("/nirs\d*/probe/frequencies")
      Optional.append("/nirs\d*/probe/timeDelays")
@@ -250,13 +246,12 @@ def getoptionalfieldsLst():
      Optional.append("/nirs\d*/probe/sourceLabels")
      Optional.append("/nirs\d*/probe/detectorLabels")
      Optional.append("/nirs\d*/probe/landmarkPos2D")
-     Optional.append("/nirs\d*/probe/landmarkPos")
      Optional.append("/nirs\d*/probe/landmarkPos3D")
      Optional.append("/nirs\d*/probe/landmarkLabels")
      Optional.append("/nirs\d*/probe/useLocalIndex")
-    
+     Optional.append("/nirs\d*/aux\d*/timeOffset")
+     Optional.append("/nirs\d*/stim\d*/dataLabels")
      return Optional
-
 
 def isrequired(fld):
     flag = False
@@ -266,7 +261,6 @@ def isrequired(fld):
             flag = True
     return flag
 
-
 def isoptional(fld):
     flag = False
     required=getoptionalfieldsLst()
@@ -275,60 +269,47 @@ def isoptional(fld):
             flag = True
     return flag
 
-
-        
-        
-
-
 def validate(filename,fileOut=None):
      fileID = h5py.File(filename, 'r')
      formatVersion=hdfgetdata(fileID,"/formatVersion")
-  
+
      def getallnames(gID,lst):
-         if isinstance(gID, h5py.Dataset):  
+         if isinstance(gID, h5py.Dataset):
              lst.append(gID.name)
          else:
             for x in gID:
                 getallnames(gID[x],lst)
-                
+
      def checkdim(field,fID,foundInvalid,lstInvalid):
          val = fID.get(field);
-    
-         if "Pos2D" in field:
-             dim = 2;
-         elif "Pos3D" in field:
-             dim = 2;
-         elif "dataTimeSeries"in field and "aux" in field:
-             dim = 1;
+
+         if "Pos2D" in field or "Pos3D" in field:
+             dim = 2
          elif "dataTimeSeries" in field:
-             dim = 2;
-         elif  ("stim" in field)and ("data" in field):
-             dim = 2;
+             dim = 2
          else:
-             dim = 1;
+             dim = 1
          if dim != len(val.dims):
              return False
-    
-     lst=[]  
-    
+
+     lst=[]
+
      getallnames(fileID,lst)
-     
-     
-     
+
      if fileOut == None:
          print('-' * 40)
          print('SNIRF Validator')
          print('Version 1.0')
          print('written by T. Huppert')
          print()
-         print('File = {0}'.format(filename))   
+         print('File = {0}'.format(filename))
          print('Version = {0}'.format(formatVersion))
          print('-' * 40)
-          
+
          foundInvalid=0;
-        
+
          lstInvalid=[]
-        
+
          for x in lst:
             print(Fore.WHITE + x)
             val = fileID.get(x)
@@ -346,14 +327,14 @@ def validate(filename,fileOut=None):
             else:
                 val=np.array(val)
                 if(val.ndim==1 and len(val)==1):
-                    val=val[0]    
+                    val=val[0]
                     print('\tHDF5-FLOAT: {0}'.format(val))
                 elif val.ndim==1:
-                    
+
                      print('\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
                 else:
                      print('\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val),int(val.size/len(val))))
-                
+
             dimcheck = checkdim(x, fileID, foundInvalid, lstInvalid)
             if dimcheck == False:
                 val = len(fileID.get(x).dims)
@@ -364,16 +345,25 @@ def validate(filename,fileOut=None):
                 foundInvalid=foundInvalid+1;
                 lstInvalid.append(x)
 
-
-            if isrequired(x)==True:
-                print(Fore.BLUE + '\t\tRequired field')
-            elif isoptional(x):
-                print(Fore.GREEN +'\t\tOptional field')
+            if "/aux" in x or "/stim" in x:
+                if isrequired(x) == True:
+                    print(Fore.BLUE + '\t\tRequired field when optional parent object is included')
+                elif isoptional(x):
+                    print(Fore.GREEN + '\t\tOptional field when optional parent object is included')
+                else:
+                    print(Fore.RED + '\t\tINVALID field')
+                    foundInvalid = foundInvalid + 1
+                    lstInvalid.append(x)
             else:
-                print(Fore.RED +'\t\tINVALID field')
-                foundInvalid=foundInvalid+1
-                lstInvalid.append(x)
-        
+                if isrequired(x) == True:
+                    print(Fore.BLUE + '\t\tRequired field')
+                elif isoptional(x):
+                    print(Fore.GREEN + '\t\tOptional field')
+                else:
+                    print(Fore.RED + '\t\tINVALID field')
+                    foundInvalid = foundInvalid + 1
+                    lstInvalid.append(x)
+
          print('-' * 40)
          if(len(lstInvalid)!=0):
               print(Fore.RED+ "File is INVALID")
@@ -390,14 +380,14 @@ def validate(filename,fileOut=None):
          text_file.write('\n' + '\n' + 'Version 1.0')
          text_file.write('\n' + 'written by T. Huppert')
          text_file.write('\n')
-         text_file.write('\n' + 'File = {0}'.format(filename))   
+         text_file.write('\n' + 'File = {0}'.format(filename))
          text_file.write('\n' + 'Version = {0}'.format(formatVersion))
          text_file.write('\n' + '-' * 40)
-          
+
          foundInvalid=0;
-        
+
          lstInvalid=[]
-        
+
          for x in lst:
             text_file.write('\n' + x)
             val = fileID.get(x)
@@ -415,14 +405,14 @@ def validate(filename,fileOut=None):
             else:
                 val=np.array(val)
                 if(val.ndim==1 and len(val)==1):
-                    val=val[0]    
+                    val=val[0]
                     text_file.write('\n' + '\tHDF5-FLOAT: {0}'.format(val))
                 elif val.ndim==1:
-                    
+
                      text_file.write('\n' + '\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
                 else:
                      text_file.write('\n' + '\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val),int(val.size/len(val))))
-                
+
             dimcheck = checkdim(x, fileID, foundInvalid, lstInvalid)
             if dimcheck == False:
                 val = len(fileID.get(x).dims)
@@ -432,7 +422,7 @@ def validate(filename,fileOut=None):
                     text_file.write(Fore.RED +'\tINVALID dimensions(Expected Number of Dimensions: 1)')
                 foundInvalid=foundInvalid+1
                 lstInvalid.append(x)
-            
+
             if isrequired(x)==True:
                 text_file.write('\n' + '\t\tRequired field')
             elif isoptional(x):
@@ -441,7 +431,7 @@ def validate(filename,fileOut=None):
                 text_file.write('\n' + '\t\tINVALID field')
                 foundInvalid=foundInvalid+1
                 lstInvalid.append(x)
-        
+
          text_file.write('\n' + '-' * 40)
          if(len(lstInvalid)!=0):
               text_file.write('\n' + "File is INVALID")
@@ -451,12 +441,10 @@ def validate(filename,fileOut=None):
          else:
               text_file.write('\n' + "File is VALID")
          text_file.close()
-              
      return (foundInvalid==0)
-    
- 
+
 def main():
-    
+
     filename=sys.argv[1]
     print(filename)
     if(len(sys.argv)>2):
@@ -464,9 +452,9 @@ def main():
     else:
         fileOut=None
     validate(filename,fileOut)
-    
+
 if __name__ == "__main__":
     main()
-    
-    
-    
+
+
+
