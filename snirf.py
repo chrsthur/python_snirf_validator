@@ -183,12 +183,12 @@ def hdfgetdata(gID,field):
         if h5py.check_string_dtype(val.dtype):
             # string
             if val.len()==1:
-                val=val[0].tobytes().decode('ascii')
+                val=val[0].decode('ascii')
                 return val
             else:
                 val2=[];
                 for x in val:
-                    val2.append(x.tobytes().decode('ascii'))
+                    val2.append(x.decode('ascii'))
                 val2=np.array(val2)
                 return val2
         val=np.array(val)
@@ -252,7 +252,6 @@ def getoptionalfieldsLst():
      Optional.append("/nirs\d*/aux\d*/timeOffset")
      Optional.append("/nirs\d*/stim\d*/dataLabels")
      Optional.append("/nirs\d*/metaDataTags/ManufacturerName")
-     Optional.append("/nirs\d*/metaDataTags/ManufacturerName")
      Optional.append("/nirs\d*/metaDataTags/Model")
      Optional.append("/nirs\d*/metaDataTags/SubjectName")
      Optional.append("/nirs\d*/metaDataTags/DateOfBirth")
@@ -299,6 +298,10 @@ def validate(filename,fileOut=None):
              dim = 2
          elif "dataTimeSeries" in field:
              dim = 2
+         elif "stim" in field and "data" in field:
+             dim = 2
+             if "dataLabels" in field:
+                 dim = 1
          else:
              dim = 1
          if dim != len(val.dims):
@@ -337,15 +340,18 @@ def validate(filename,fileOut=None):
                     val2=np.array(val2)
                     print('\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
             else:
-                val=np.array(val)
-                if(val.ndim==1 and len(val)==1):
-                    val=val[0]
-                    print('\tHDF5-FLOAT: {0}'.format(val))
-                elif val.ndim==1:
 
-                     print('\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
+                val = np.array(val)
+                if val.ndim == 1:
+                    if len(val)==1:
+                        val=val[0]
+                        print('\tHDF5-FLOAT: {0}'.format(val))
+                    else:
+                        print('\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
+                elif val.ndim == 0:
+                    print('\tHDF5-Integer 0D-Scalar <0x0>')
                 else:
-                     print('\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val),int(val.size/len(val))))
+                    print('\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val), int(val.size / len(val))))
 
             dimcheck = checkdim(x, fileID, foundInvalid, lstInvalid)
             if dimcheck == False:
