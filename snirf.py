@@ -302,6 +302,8 @@ def validate(filename,fileOut=None):
              dim = 2
              if "dataLabels" in field:
                  dim = 1
+         elif "dataType" in field:
+             dim = 0
          else:
              dim = 1
          if dim != len(val.dims):
@@ -331,12 +333,12 @@ def validate(filename,fileOut=None):
             if h5py.check_string_dtype(val.dtype):
                 # string
                 if val.len()==1:
-                    val=val[0].tobytes().decode('ascii')
+                    val=val[0].decode('ascii')
                     print('\tHDF5-STRING: {0}'.format(val))
                 else:
                     val2=[];
                     for y in val:
-                        val2.append(y.tobytes().decode('ascii'))
+                        val2.append(y.decode('ascii'))
                     val2=np.array(val2)
                     print('\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
             else:
