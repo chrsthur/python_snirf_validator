@@ -251,17 +251,6 @@ def getoptionalfieldsLst():
      Optional.append("/nirs\d*/probe/useLocalIndex")
      Optional.append("/nirs\d*/aux\d*/timeOffset")
      Optional.append("/nirs\d*/stim\d*/dataLabels")
-     Optional.append("/nirs\d*/metaDataTags/ManufacturerName")
-     Optional.append("/nirs\d*/metaDataTags/Model")
-     Optional.append("/nirs\d*/metaDataTags/SubjectName")
-     Optional.append("/nirs\d*/metaDataTags/DateOfBirth")
-     Optional.append("/nirs\d*/metaDataTags/AcquisitionStartTime")
-     Optional.append("/nirs\d*/metaDataTags/StudyID")
-     Optional.append("/nirs\d*/metaDataTags/StudyDescription")
-     Optional.append("/nirs\d*/metaDataTags/AccessionNumber")
-     Optional.append("/nirs\d*/metaDataTags/InstanceNumber")
-     Optional.append("/nirs\d*/metaDataTags/CalibrationFileName")
-     Optional.append("/nirs\d*/metaDataTags/UnixTime")
      return Optional
 
 def isrequired(fld):
@@ -278,6 +267,8 @@ def isoptional(fld):
     for x in required:
         if re.match(x,fld):
             flag = True
+    if "metaDataTags" in fld:
+        flag = True
     return flag
 
 def validate(filename,fileOut=None):
@@ -378,7 +369,10 @@ def validate(filename,fileOut=None):
                 if isrequired(x) == True:
                     print(Fore.BLUE + '\t\tRequired field')
                 elif isoptional(x):
-                    print(Fore.GREEN + '\t\tOptional field')
+                    if 'metaDataTags' in x:
+                        print(Fore.GREEN + '\t\tUser defined Optional metaDataTags field')
+                    else:
+                        print(Fore.GREEN + '\t\tOptional field')
                 else:
                     print(Fore.RED + '\t\tINVALID field')
                     foundInvalid = foundInvalid + 1
