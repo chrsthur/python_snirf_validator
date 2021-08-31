@@ -289,8 +289,6 @@ def validate(filename,fileOut=None):
              dim = 2
          elif "dataTimeSeries" in field:
              dim = 2
-         elif "Labels" in field:
-             dim = 2
          elif "measurementList" in field:
              if "dataTypeLabel" in field:
                 dim = 1
@@ -299,7 +297,9 @@ def validate(filename,fileOut=None):
          else:
              dim = 1
          if dim != len(val.dims):
-             return False
+             return False, dim
+         else:
+             return True, dim
 
      lst=[]
 
@@ -334,7 +334,6 @@ def validate(filename,fileOut=None):
                     val2=np.array(val2)
                     print('\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
             else:
-
                 val = np.array(val)
                 if val.ndim == 1:
                     if len(val)==1:
@@ -347,13 +346,9 @@ def validate(filename,fileOut=None):
                 else:
                     print('\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val), int(val.size / len(val))))
 
-            dimcheck = checkdim(x, fileID, foundInvalid, lstInvalid)
+            dimcheck,actualDim = checkdim(x, fileID, foundInvalid, lstInvalid)
             if dimcheck == False:
-                val = len(fileID.get(x).dims)
-                if val == 1:
-                    print(Fore.RED +'\tINVALID dimensions(Expected Number of Dimensions: 2)')
-                else:
-                    print(Fore.RED +'\tINVALID dimensions(Expected Number of Dimensions: 1)')
+                print(Fore.RED + '\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim))
                 foundInvalid=foundInvalid+1;
                 lstInvalid.append(x)
 
