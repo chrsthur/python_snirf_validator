@@ -348,7 +348,7 @@ def validate(filename,fileOut=None):
 
             dimcheck,actualDim = checkdim(x, fileID, foundInvalid, lstInvalid)
             if dimcheck == False:
-                print(Fore.RED + '\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim))
+                print(Fore.RED + '\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim) + ')')
                 foundInvalid=foundInvalid+1;
                 lstInvalid.append(x)
 
