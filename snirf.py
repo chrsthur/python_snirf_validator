@@ -289,12 +289,13 @@ def validate(filename,fileOut=None):
              dim = 2
          elif "dataTimeSeries" in field:
              dim = 2
-         elif "stim" in field and "data" in field:
+         elif "Labels" in field:
              dim = 2
-             if "dataLabels" in field:
-                 dim = 1
-         elif "dataType" in field:
-             dim = 0
+         elif "measurementList" in field:
+             if "dataTypeLabel" in field:
+                dim = 1
+             else:
+                dim = 0
          else:
              dim = 1
          if dim != len(val.dims):
