@@ -158,9 +158,6 @@ def read_stim(gID):
 
 def read_measurementList(gID):
     m=measurementList
-
-
-
     m.sourceIndex=hdfgetdata(gID,'sourceIndex')
     m.detectorIndex=hdfgetdata(gID,'detectorIndex')
     m.wavelengthIndex=hdfgetdata(gID,'wavelengthIndex')
@@ -283,7 +280,7 @@ def validate(filename,fileOut=None):
                 getallnames(gID[x],lst)
 
      def checkdim(field,fID,foundInvalid,lstInvalid):
-         val = fID.get(field);
+         val = fID.get(field)
 
          if "Pos2D" in field or "Pos3D" in field:
              dim = 2
@@ -294,12 +291,16 @@ def validate(filename,fileOut=None):
                 dim = 1
              else:
                 dim = 0
+         elif "stim" in field and "data" in field:
+             dim = 2
          else:
              dim = 1
          if dim != len(val.dims):
              return False, dim
          else:
              return True, dim
+
+     #def reCheckField(field,fID):
 
      lst=[]
 
@@ -323,6 +324,7 @@ def validate(filename,fileOut=None):
             print(Fore.WHITE + x)
             val = fileID.get(x)
             if h5py.check_string_dtype(val.dtype):
+                dimcheck, actualDim = checkdim(x, fileID, foundInvalid, lstInvalid)
                 # string
                 if val.len()==1:
                     val=val[0].decode('ascii')
@@ -334,11 +336,14 @@ def validate(filename,fileOut=None):
                     val2=np.array(val2)
                     print('\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
             else:
+                dimcheck, actualDim = checkdim(x, fileID, foundInvalid, lstInvalid)
                 val = np.array(val)
                 if val.ndim == 1:
                     if len(val)==1:
                         val=val[0]
                         print('\tHDF5-FLOAT: {0}'.format(val))
+                        #if not dimcheck:
+                            #dimcheck,actualDim = reCheckField(x, fileID)
                     else:
                         print('\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
                 elif val.ndim == 0:
@@ -346,12 +351,10 @@ def validate(filename,fileOut=None):
                 else:
                     print('\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val), int(val.size / len(val))))
 
-            dimcheck,actualDim = checkdim(x, fileID, foundInvalid, lstInvalid)
             if dimcheck == False:
                 print(Fore.RED + '\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim) + ')')
-                foundInvalid=foundInvalid+1;
+                foundInvalid=foundInvalid+1
                 lstInvalid.append(x)
-
             if "/aux" in x or "/stim" in x:
                 if isrequired(x) == True:
                     print(Fore.BLUE + '\t\tRequired field when optional parent object is included')
