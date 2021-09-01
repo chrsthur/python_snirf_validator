@@ -285,7 +285,10 @@ def validate(filename,fileOut=None):
          if "Pos2D" in field or "Pos3D" in field:
              dim = 2
          elif "dataTimeSeries" in field:
-             dim = 2
+             if "aux" in field:
+                dim = 1
+             else:
+                dim = 2
          elif "measurementList" in field:
              if "dataTypeLabel" in field:
                 dim = 1
@@ -300,7 +303,13 @@ def validate(filename,fileOut=None):
          else:
              return True, dim
 
-     #def reCheckField(field,fID):
+     def recheckfield(field,fID):
+         val = fID.get(field)
+
+         if val.shape == (1,):
+             return True
+         else:
+             return False
 
      lst=[]
 
@@ -342,8 +351,8 @@ def validate(filename,fileOut=None):
                     if len(val)==1:
                         val=val[0]
                         print('\tHDF5-FLOAT: {0}'.format(val))
-                        #if not dimcheck:
-                            #dimcheck,actualDim = reCheckField(x, fileID)
+                        if not dimcheck:
+                            dimcheck = recheckfield(x, fileID)
                     else:
                         print('\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
                 elif val.ndim == 0:
@@ -421,18 +430,13 @@ def validate(filename,fileOut=None):
                     val=val[0]
                     text_file.write('\n' + '\tHDF5-FLOAT: {0}'.format(val))
                 elif val.ndim==1:
-
                      text_file.write('\n' + '\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
                 else:
                      text_file.write('\n' + '\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val),int(val.size/len(val))))
 
-            dimcheck = checkdim(x, fileID, foundInvalid, lstInvalid)
+            dimcheck, actualDim = checkdim(x, fileID, foundInvalid, lstInvalid)
             if dimcheck == False:
-                val = len(fileID.get(x).dims)
-                if val == 1:
-                    text_file.write(Fore.RED +'\tINVALID dimensions(Expected Number of Dimensions: 2)')
-                else:
-                    text_file.write(Fore.RED +'\tINVALID dimensions(Expected Number of Dimensions: 1)')
+                print(Fore.RED + '\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim) + ')')
                 foundInvalid=foundInvalid+1
                 lstInvalid.append(x)
 
