@@ -156,12 +156,12 @@ function validator()
         elseif isscalar(Data) && isa(Data,'integer') % single integer
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
            fprintf('%dx%d Integer, %s',row,col,"0D in python, ");
-           fprintf('%d',Data);
+           fprintf('Value: %d',Data);
 %            ActualDim = 0;
         elseif isscalar(Data) && isa(Data,'float') % single float
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
            fprintf('%dx%d Float, %s',row,col,"0D in python, "); 
-           fprintf('%.1f',Data);
+           fprintf('Value: %.1f',Data);
 %            ActualDim = 0;
         elseif isvector(Data)
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
@@ -178,7 +178,11 @@ function validator()
         if contains(FieldName,'Pos2D') || contains(FieldName,'Pos3D')
             SpecDim = 2;
         elseif contains(FieldName,'dataTimeSeries')
-            SpecDim = 2;
+            if contains(FieldName,'aux')
+                SpecDim = 1;
+            else
+                SpecDim = 2;
+            end
         elseif contains(FieldName,'stim') && contains(FieldName,'data')
             if contains(FieldName,'dataLabels')
                 SpecDim = 1;
