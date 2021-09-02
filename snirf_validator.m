@@ -151,7 +151,7 @@ function validator()
         if isstring(Data) || iscell(Data) % string
            str = sprintf('%dx%d string, ',row,col);
            fprintf('    Data type: %s %s',DataSet.Datatype.Class,str);
-           fprintf('Value: %s ',Data{:})
+           fprintf('%s ',Data{:})
 %            ActualDim = 1;
         elseif isscalar(Data) && isa(Data,'integer') % single integer
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
@@ -165,11 +165,11 @@ function validator()
 %            ActualDim = 0;
         elseif isvector(Data)
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
-           fprintf('Value: %dx%d 1D-Vector',row,col);  
+           fprintf('%dx%d 1D-Vector',row,col);  
 %            ActualDim = 1;
         elseif ismatrix(Data)
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
-           fprintf('Value: %dx%d 2D-Vector',row,col);
+           fprintf('%dx%d 2D-Vector',row,col);
            ActualDim = 2;
         end
     end
