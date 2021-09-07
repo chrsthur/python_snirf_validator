@@ -33,33 +33,44 @@ def validate(filename, fileOut=None):
             required = ["formatVersion", "nirs"]
             requiredIndex = [0] * len(required)
             for child in gID:
-                if child in required: # if child in RequiredField, change RequiredIndex
-                    requiredIndex[required.index(child)] = 1
+                childNoNum = ''.join(i for i in child if not i.isdigit())
+                if childNoNum in required: # if child in RequiredField, change RequiredIndex
+                    requiredIndex[required.index(childNoNum)] = 1
                 else:
                     print(Fore.RED + "\tInvalid Group: " + str(child))
                 getallnames(gID[child], completeList, missingList)
             if 0 in requiredIndex: # check if requiredIndex has 0, if so, append the name
                 missingList.append(required[requiredIndex.index(0)])
         elif isinstance(gID, h5py.Group):
-            if 'nirs' in gID.name:
-                required = ["metaDataTag", "data", "probe"]
+            print(gID.name)
+            if 'measurementList' in gID.name:
+                required = ["sourceIndex", "detectorIndex", "wavelengthIndex", "dataType", "dataTypeIndex"]
             elif 'data' in gID.name:
                 required = ["dataTimeSeries", "time", "measurementList"]
+            elif 'stim' in gID.name:
+                required = ["name", "data"]
+            elif 'aux' in gID.name:
+                required = ["name", "dataTimeSeries", "time"]
+            elif 'metaDataTag' in gID.name:
+                required = ["SubjectID", "MeasurementDate", "MeasurementTime", "LengthUnit", "TimeUnit", "FrequencyUnit"]
+            elif 'probe' in gID.name:
+                required = ["wavelengths", "sourcePos2D", "detectorPos2D", "detectorPos2D", "detectorPos3D"]
+            elif 'nirs' in gID.name:
+                required = ["metaDataTag", "data", "probe"]
             else:
                 print(Fore.RED + "\tInvalid Group: " + str(gID.name))
+            requiredIndex = [0] * len(required)
 
-            # if gID is /nirs, requiredfield = ["metaDataTag","data","probe"]
-            # if gID is /data, requireField = ["dataTimeSeries","time","measurementList"]
-            # if gID is /measurementList, requiredField = [sourceIndex,detectorIndex,wavelengthIndex,dataType,dataTypeIndex]
-            # if gID is /stim, requiredField = [name,data]
-            # if gID is /aux, requiredField = [name,data,time]
             for child in gID:
-                # if child in the Required, change requirefield index
+                childNoNum = ''.join(i for i in child if not i.isdigit())
+                if childNoNum in required:  # if child in RequiredField, change RequiredIndex
+                    requiredIndex[required.index(childNoNum)] = 1
+                #else: # check if optional
                 getallnames(gID[child], completeList, missingList)
-            # check if requiredFieldIndex has 0, if not, no missing field
+            if 0 in requiredIndex: # check if requiredIndex has 0, if so, append the name
+                missingList.append(required[requiredIndex.index(0)])
         elif isinstance(gID, h5py.Dataset):
             completeList.append(gID.name)
-            # required/optional check
             # datatype check
             # dimension check
         else:
@@ -67,7 +78,7 @@ def validate(filename, fileOut=None):
 
     completeList = []
     missingList = []
-    getallnames(fileID, completeList,missingList)
+    getallnames(fileID, completeList, missingList)
 
 def main():
     filename=sys.argv[1]
