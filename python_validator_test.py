@@ -28,7 +28,7 @@ def hdfgetdata(gID, field):
 def validate(filename, fileOut=None):
     fileID = h5py.File(filename, 'r')
 
-    def getallnames(gID, lst):
+    def getallnames(gID, completeList,missingList):
         if isinstance(gID, h5py.File):
             Required = ["formatVersion", "nirs"]
             RequiredIndex = [0, 0]
@@ -36,8 +36,9 @@ def validate(filename, fileOut=None):
                 if child in Required: # if nirs/formatversion in RequiredField, change RequiredField Index
                     RequiredIndex[Required.index(child)] = 1
                 else:
-                    print(Fore.RED + "\tInvalid Group: " + )
-                getallnames(gID[child], lst)
+                    print(Fore.RED + "\tInvalid Group: " + str(child))
+                getallnames(gID[child], completeList,missingList)
+            missingList.append(Required[RequiredIndex.index(0)])
             # check if requiredFieldIndex has 0, if not, no missing field
         elif isinstance(gID, h5py.Group):
             # if gID is /nirs, requiredfield = ["metaDataTag","data","probe"]
@@ -45,20 +46,21 @@ def validate(filename, fileOut=None):
             # if gID is /measurementList, requiredField = [sourceIndex,detectorIndex,wavelengthIndex,dataType,dataTypeIndex]
             # if gID is /stim, requiredField = [name,data]
             # if gID is /aux, requiredField = [name,data,time]
-            for y in gID:
+            for child in gID:
                 # if y in the requireField, change requirefield index
-                getallnames(gID[y], lst)
+                getallnames(gID[child], completeList,missingList)
             # check if requiredFieldIndex has 0, if not, no missing field
         elif isinstance(gID, h5py.Dataset):
-            lst.append(gID.name)
+            completeList.append(gID.name)
             # required/optional check
             # datatype check
             # dimension check
         else:
             return 0
 
-    lst = []
-    getallnames(fileID, lst)
+    completeList = []
+    missingList = []
+    getallnames(fileID, completeList,missingList)
 
 def main():
     filename=sys.argv[1]
