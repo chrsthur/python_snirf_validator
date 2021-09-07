@@ -1,5 +1,6 @@
 clear all force
 close all hidden
+clc
 validator();
 
 function validator()
@@ -135,8 +136,18 @@ function validator()
         if Customize == 1
             SpecDim = ActualDim;
         end
+        
+        % Dimension adjustment for /nirs/stim/data, 
+        if contains(FieldName,'stim') && contains(FieldName,'data')
+            if ~contains(FieldName,'dataLabels')
+                if max(size(Data,1),size(Data,2)) >= 3
+                    ActualDim = 2;
+                end
+            end
+        end
+          
         if ~isequal(SpecDim,ActualDim) 
-            fprintf('    Invalid dimensions! Expected Number of dimension: %d',SpecDim);
+            fprintf('    Invalid dimenswions! Expected Number of dimension: %d',SpecDim);
             fprintf('\n');
             InvalidList{end+1,1} = FieldName;
         end
@@ -144,7 +155,7 @@ function validator()
 
     function ActualDim = GetActualDim(DataSet,Data)
         [row,col] = size(Data);
-%         ActualDim = [];
+        %ActualDim = [];
         ActualDim = 1;
         fprintf('\n');
         % Get actual dimension 
@@ -152,21 +163,21 @@ function validator()
            str = sprintf('%dx%d string, ',row,col);
            fprintf('    Data type: %s %s',DataSet.Datatype.Class,str);
            fprintf('%s ',Data{:})
-%            ActualDim = 1;
+            %ActualDim = 1;
         elseif isscalar(Data) && isa(Data,'integer') % single integer
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
            fprintf('%dx%d Integer, %s',row,col,"0D in python, ");
            fprintf('Value: %d',Data);
-%            ActualDim = 0;
+            %ActualDim = 0;
         elseif isscalar(Data) && isa(Data,'float') % single float
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
            fprintf('%dx%d Float, %s',row,col,"0D in python, "); 
            fprintf('Value: %.1f',Data);
-%            ActualDim = 0;
+            %ActualDim = 0;
         elseif isvector(Data)
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
            fprintf('%dx%d 1D-Vector',row,col);  
-%            ActualDim = 1;
+            %ActualDim = 1;
         elseif ismatrix(Data)
            fprintf('    Data type: %s, ',DataSet.Datatype.Class);
            fprintf('%dx%d 2D-Vector',row,col);
