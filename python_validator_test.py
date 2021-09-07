@@ -28,27 +28,34 @@ def hdfgetdata(gID, field):
 def validate(filename, fileOut=None):
     fileID = h5py.File(filename, 'r')
 
-    def getallnames(gID, completeList,missingList):
+    def getallnames(gID, completeList, missingList):
         if isinstance(gID, h5py.File):
-            Required = ["formatVersion", "nirs"]
-            RequiredIndex = [0, 0]
+            required = ["formatVersion", "nirs"]
+            requiredIndex = [0] * len(required)
             for child in gID:
-                if child in Required: # if nirs/formatversion in RequiredField, change RequiredField Index
-                    RequiredIndex[Required.index(child)] = 1
+                if child in required: # if child in RequiredField, change RequiredIndex
+                    requiredIndex[required.index(child)] = 1
                 else:
                     print(Fore.RED + "\tInvalid Group: " + str(child))
-                getallnames(gID[child], completeList,missingList)
-            missingList.append(Required[RequiredIndex.index(0)])
-            # check if requiredFieldIndex has 0, if not, no missing field
+                getallnames(gID[child], completeList, missingList)
+            if 0 in requiredIndex: # check if requiredIndex has 0, if so, append the name
+                missingList.append(required[requiredIndex.index(0)])
         elif isinstance(gID, h5py.Group):
+            if 'nirs' in gID.name:
+                required = ["metaDataTag", "data", "probe"]
+            elif 'data' in gID.name:
+                required = ["dataTimeSeries", "time", "measurementList"]
+            else:
+                print(Fore.RED + "\tInvalid Group: " + str(gID.name))
+
             # if gID is /nirs, requiredfield = ["metaDataTag","data","probe"]
             # if gID is /data, requireField = ["dataTimeSeries","time","measurementList"]
             # if gID is /measurementList, requiredField = [sourceIndex,detectorIndex,wavelengthIndex,dataType,dataTypeIndex]
             # if gID is /stim, requiredField = [name,data]
             # if gID is /aux, requiredField = [name,data,time]
             for child in gID:
-                # if y in the requireField, change requirefield index
-                getallnames(gID[child], completeList,missingList)
+                # if child in the Required, change requirefield index
+                getallnames(gID[child], completeList, missingList)
             # check if requiredFieldIndex has 0, if not, no missing field
         elif isinstance(gID, h5py.Dataset):
             completeList.append(gID.name)
