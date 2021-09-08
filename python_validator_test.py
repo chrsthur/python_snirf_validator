@@ -28,19 +28,24 @@ def hdfgetdata(gID, field):
 def validate(filename, fileOut=None):
     fileID = h5py.File(filename, 'r')
 
+    def CheckRequiredIndex(Name,required,requiredIndex):
+        if 0 in requiredIndex:  # check if requiredIndex has 0, if so, append the name
+            for i in range(len(required)):
+                if requiredIndex[i] == 0:
+                    missingList.append(Name + '/' + required[i])
+
     def getallnames(gID, completeList, missingList):
         if isinstance(gID, h5py.File):
             required = ["formatVersion", "nirs"]
             requiredIndex = [0] * len(required)
             for child in gID:
                 childNoNum = ''.join(i for i in child if not i.isdigit())
-                if childNoNum in required: # if child in RequiredField, change RequiredIndex
+                if childNoNum in required:  # if child in RequiredField, change RequiredIndex
                     requiredIndex[required.index(childNoNum)] = 1
                 else:
-                    print(Fore.RED + "\tInvalid Group: " + str(child))
+                    print(Fore.RED + "\tInvalid Indexed Group: " + str(child))
                 getallnames(gID[child], completeList, missingList)
-            if 0 in requiredIndex: # check if requiredIndex has 0, if so, append the name
-                missingList.append(required[requiredIndex.index(0)])
+            CheckRequiredIndex(gID.name, required, requiredIndex)
         elif isinstance(gID, h5py.Group):
             print(gID.name)
             if 'measurementList' in gID.name:
@@ -51,24 +56,43 @@ def validate(filename, fileOut=None):
                 required = ["name", "data"]
             elif 'aux' in gID.name:
                 required = ["name", "dataTimeSeries", "time"]
-            elif 'metaDataTag' in gID.name:
+            elif 'metaDataTags' in gID.name:
                 required = ["SubjectID", "MeasurementDate", "MeasurementTime", "LengthUnit", "TimeUnit", "FrequencyUnit"]
             elif 'probe' in gID.name:
-                required = ["wavelengths", "sourcePos2D", "detectorPos2D", "detectorPos2D", "detectorPos3D"]
+                required = ["wavelengths"]
             elif 'nirs' in gID.name:
-                required = ["metaDataTag", "data", "probe"]
+                required = ["metaDataTags", "data", "probe"]
             else:
                 print(Fore.RED + "\tInvalid Group: " + str(gID.name))
+                return 0
             requiredIndex = [0] * len(required)
 
             for child in gID:
-                childNoNum = ''.join(i for i in child if not i.isdigit())
-                if childNoNum in required:  # if child in RequiredField, change RequiredIndex
-                    requiredIndex[required.index(childNoNum)] = 1
-                #else: # check if optional
+                if 'sourcePos2D' in child or 'detectorPos2D' in child:
+                    if 'sourcePos2D' not in required and 'detectPos2D' not in required:
+                        required.append("sourcePos2D")
+                        requiredIndex.append(0)
+                        required.append("detectorPos2D")
+                        requiredIndex.append(0)
+                    if child in required:
+                        requiredIndex[required.index(child)] = 1
+                elif 'sourcePos3D' in child or 'detectorPos3D' in child:
+                    if 'sourcePos3D' not in required and 'detectPos3D' not in required:
+                        required.append("sourcePos3D")
+                        requiredIndex.append(0)
+                        required.append("detectorPos3D")
+                        requiredIndex.append(0)
+                    if child in required:
+                        requiredIndex[required.index(child)] = 1
+                else:
+                    childNoNum = ''.join(i for i in child if not i.isdigit())
+                    if childNoNum in required:  # if child in RequiredField, change RequiredIndex
+                        requiredIndex[required.index(childNoNum)] = 1
+                    else: # check if optional
+
+
                 getallnames(gID[child], completeList, missingList)
-            if 0 in requiredIndex: # check if requiredIndex has 0, if so, append the name
-                missingList.append(required[requiredIndex.index(0)])
+            CheckRequiredIndex(gID.name, required, requiredIndex)
         elif isinstance(gID, h5py.Dataset):
             completeList.append(gID.name)
             # datatype check
@@ -79,6 +103,7 @@ def validate(filename, fileOut=None):
     completeList = []
     missingList = []
     getallnames(fileID, completeList, missingList)
+    print(missingList)
 
 def main():
     filename=sys.argv[1]
