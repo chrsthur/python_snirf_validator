@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jun 3 13:28 2020
-Updated on Tue Sep 7 13:59 2021
+Updated on Tue Sep 7 21:48 2021
 
 Original Author: theodorehuppert
 Updated by Team Lemon
@@ -29,12 +29,16 @@ class measurementList:
     moduleIndex = None
     sourceModuleIndex = None
     detectorModuleIndex = None
+    validFlag = 0
+    missField = []
 
 
 class data:
     dataTimeSeries = None
     time = None
     measurementList = measurementList()
+    validFlag = 0
+    missField = []
 
 
 class probe:
@@ -56,6 +60,8 @@ class probe:
     landmarkPos3D = None
     landmarkLabels = None
     useLocalIndex = None
+    validFlag = 0
+    missField = []
 
 
 class aux:
@@ -63,12 +69,16 @@ class aux:
     dataTimeSeries = None
     time = None
     timeOffSet = None
+    validFlag = 0
+    missField = []
 
 
 class stim:
     name = None
     data = None
     dataLabels = None
+    validFlag = 0
+    missField = []
 
 
 class metaDataTags:
@@ -78,20 +88,31 @@ class metaDataTags:
     LengthUnit = None
     TimeUnit = None
     FrequencyUnit = None
+    validFlag = 0
+    missField = []
+
+
+class nirs:
+    data = []
+    stim = []
+    probe = probe()
+    aux = []
+    metaDataTags = metaDataTags()
+    validFlag = 0
+    missField = []
 
 
 class snirf:
     filename = None
     formatVersion = None
-    data = None
-    stim = None
-    probe = probe()
-    aux = None
-    metaDataTags = metaDataTags()
+    nirs = []
+    validFlag = 0
+    missField = []
 
 
 def read_measurementList(gID):
     m = measurementList
+
     m.sourceIndex = hdfgetdata(gID, 'sourceIndex')
     m.detectorIndex = hdfgetdata(gID, 'detectorIndex')
     m.wavelengthIndex = hdfgetdata(gID, 'wavelengthIndex')
@@ -106,6 +127,17 @@ def read_measurementList(gID):
     m.sourceModuleIndex = hdfgetdata(gID, 'sourceModuleIndex')
     m.detectorModuleIndex = hdfgetdata(gID, 'detectorModuleIndex')
 
+    reqField = [m.sourceIndex, m.detectorIndex, m.wavelengthIndex, m.dataType, m.dataTypeIndex]
+    reqFieldName = ['sourceIndex', 'detectorIndex', 'wavelengthIndex', 'dataType', 'dataTypeIndex']
+
+    if any(elem is None or (isinstance(elem, list) and len(elem) == 0) for elem in reqField):
+        pass
+    else:
+        m.validFlag = 1
+
+    for j in (i for i in range(len(reqField)) if reqField[i] is None):
+        m.missField.append(reqFieldName[j])
+
     return m
 
 
@@ -114,9 +146,17 @@ def read_data(gID):
 
     d.dataTimeSeries = hdfgetdata(gID, 'dataTimeSeries')
     d.time = hdfgetdata(gID, 'time')
+    d.measurementList = []
     for fld in gID:
         if 'measurementList' in fld:
-            d.measurementList = read_measurementList(gID[fld])
+            d.measurementList.append(read_measurementList(gID[fld]))
+
+    reqField = [d.dataTimeSeries, d.time, d.measurementList]
+
+    if any(elem is None or (isinstance(elem, list) and len(elem) == 0) for elem in reqField):
+        pass
+    else:
+        d.validFlag = 1
 
     return d
 
@@ -143,6 +183,21 @@ def read_probe(gID):
     p.landmarkLabels = hdfgetdata(gID, 'landmarkLabels')
     p.useLocalIndex = hdfgetdata(gID, 'useLocalIndex')
 
+    if any(elem is not None for elem in [p.sourcePos2D, p.sourcePos3D]):
+        sourcepos = 1
+    else:
+        sourcepos = None
+    if any(elem is not None for elem in [p.detectorPos2D, p.detectorPos3D]):
+        detectorpos = 1
+    else:
+        detectorpos = None
+    reqField = [p.wavelengths, sourcepos, detectorpos]
+
+    if any(elem is None or (isinstance(elem, list) and len(elem) == 0) for elem in reqField):
+        pass
+    else:
+        p.validFlag = 1
+
     return p
 
 
@@ -153,6 +208,13 @@ def read_aux(gID):
     a.time = hdfgetdata(gID, 'time')
     a.timeOffSet = hdfgetdata(gID, 'timeOffSet')
 
+    reqField = [a.name, a.dataTimeSeries, a.time]
+
+    if any(elem is None or (isinstance(elem, list) and len(elem) == 0) for elem in reqField):
+        pass
+    else:
+        a.validFlag = 1
+
     return a
 
 
@@ -161,6 +223,18 @@ def read_stim(gID):
     s.name = hdfgetdata(gID, 'name')
     s.data = hdfgetdata(gID, 'data')
     s.dataLabels = hdfgetdata(gID, 'dataLabels')
+
+    reqField = [s.name, s.data]
+    reqFieldName = ['name', 'data']
+
+    if any(elem is None or (isinstance(elem, list) and len(elem) == 0) for elem in reqField):
+        pass
+    else:
+        s.validFlag = 1
+
+    for j in (i for i in range(len(reqField)) if reqField[i] is None):
+        s.missField.append(reqFieldName[j])
+
     return s
 
 
@@ -172,6 +246,14 @@ def read_meta(gID):
     md.LengthUnit = hdfgetdata(gID, 'LengthUnit')
     md.TimeUnit = hdfgetdata(gID, 'TimeUnit')
     md.FrequencyUnit = hdfgetdata(gID, 'FrequencyUnit')
+
+    reqField = [md.SubjectID, md.MeasurementDate, md.MeasurementTime, md.LengthUnit, md.TimeUnit, md.FrequencyUnit]
+
+    if any(elem is None or (isinstance(elem, list) and len(elem) == 0) for elem in reqField):
+        pass
+    else:
+        md.validFlag = 1
+
     return md
 
 
@@ -255,13 +337,6 @@ def validate(filename, fileOut=None):
     fileID = h5py.File(filename, 'r')
     formatVersion = hdfgetdata(fileID, "/formatVersion")
 
-    def getallnames(gID, fieldLst):
-        if isinstance(gID, h5py.Dataset):
-            fieldLst.append(gID.name)
-        else:
-            for X in gID:
-                getallnames(gID[X], fieldLst)
-
     def checkdim(field, fID):
         value = fID.get(field)
 
@@ -294,29 +369,16 @@ def validate(filename, fileOut=None):
         else:
             return False
 
-    lst = []
+    def getallnames(gID, fieldLst, snirfFile, nirsCountFunc, dataCountFunc, stimCountFunc, auxCountFunc,
+                    invalidCountFunc, invalidFldFunc, missingFldFunc):
+        if isinstance(gID, h5py.Dataset):
+            fieldLst.append(gID.name)
 
-    getallnames(fileID, lst)
+            print(Fore.WHITE + gID.name)
+            val = fileID.get(gID.name)
 
-    if fileOut is None:
-        print('-' * 40)
-        print('SNIRF Validator')
-        print('Version 1.0')
-        print('written by T. Huppert')
-        print()
-        print('File = {0}'.format(filename))
-        print('Version = {0}'.format(formatVersion))
-        print('-' * 40)
-
-        foundInvalid = 0
-
-        lstInvalid = []
-
-        for x in lst:
-            print(Fore.WHITE + x)
-            val = fileID.get(x)
             if h5py.check_string_dtype(val.dtype):
-                dimcheck, actualDim = checkdim(x, fileID)
+                dimcheck, actualDim = checkdim(gID.name, fileID)
                 # string
                 if val.len() == 1:
                     val = val[0].decode('ascii')
@@ -328,14 +390,14 @@ def validate(filename, fileOut=None):
                     val2 = np.array(val2)
                     print('\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
             else:
-                dimcheck, actualDim = checkdim(x, fileID)
+                dimcheck, actualDim = checkdim(gID.name, fileID)
                 val = np.array(val)
                 if val.ndim == 1:
                     if len(val) == 1:
                         val = val[0]
                         print('\tHDF5-FLOAT: {0}'.format(val))
                         if not dimcheck:
-                            dimcheck = recheckfield(x, fileID)
+                            dimcheck = recheckfield(gID.name, fileID)
                     else:
                         print('\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
                 elif val.ndim == 0:
@@ -345,104 +407,153 @@ def validate(filename, fileOut=None):
 
             if not dimcheck:
                 print(Fore.RED + '\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim) + ')')
-                foundInvalid = foundInvalid + 1
-                lstInvalid.append(x)
-            if "/aux" in x or "/stim" in x:
-                if isrequired(x):
+                invalidCountFunc += 1
+                invalidFldFunc.append(gID.name)
+
+            if "/aux" in gID.name or "/stim" in gID.name:
+                if isrequired(gID.name):
                     print(Fore.BLUE + '\t\tRequired field when optional parent object is included')
-                elif isoptional(x):
+                elif isoptional(gID.name):
                     print(Fore.GREEN + '\t\tOptional field when optional parent object is included')
                 else:
                     print(Fore.RED + '\t\tINVALID field')
-                    foundInvalid = foundInvalid + 1
-                    lstInvalid.append(x)
+                    invalidCountFunc = invalidCountFunc + 1
+                    invalidFldFunc.append(gID.name)
             else:
-                if isrequired(x):
+                if isrequired(gID.name):
                     print(Fore.BLUE + '\t\tRequired field')
-                elif isoptional(x):
-                    if 'metaDataTags' in x:
+                elif isoptional(gID.name):
+                    if 'metaDataTags' in gID.name:
                         print(Fore.GREEN + '\t\tUser defined Optional metaDataTags field')
                     else:
                         print(Fore.GREEN + '\t\tOptional field')
                 else:
                     print(Fore.RED + '\t\tINVALID field')
-                    foundInvalid = foundInvalid + 1
-                    lstInvalid.append(x)
+                    invalidCountFunc = invalidCountFunc + 1
+                    invalidFldFunc.append(gID.name)
+        else:
+            for X in gID:
+                if not isinstance(gID[X], h5py.Dataset):
+                    if 'nirs' in X:
+                        if len(snirfFile.nirs) == 0:
+                            snirfFile.nirs.append(nirs())
+                            nirsCountFunc += 1
+                        else:
+                            snirfFile.nirs.append(nirs())
+                            nirsCountFunc += 1
+                    elif 'metaDataTags' in X:
+                        snirfFile.nirs[nirsCountFunc].metaDataTags = read_meta(gID[X])
+                        if snirfFile.nirs[nirsCountFunc].metaDataTags.validFlag == 1:
+                            print(Fore.BLUE + gID[X].name + ' is a valid group field')
+                        else:
+                            print(Fore.RED + gID[X].name + ' is an INVALID group field')
+                            print(Fore.RED + gID[X].name + ' is missing:')
+                            for i in range(len(snirfFile.nirs[nirsCountFunc].metaDataTags.missField)):
+                                print(Fore.RED + '\t' + snirfFile.nirs[nirsCountFunc].metaDataTags.missField[i])
+                                invalidCountFunc += 1
+                                missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
+                                                      metaDataTags.missField[i])
+                    elif 'data' in X:
+                        snirfFile.nirs[nirsCountFunc].data.append(read_data(gID[X]))
+                        dataCountFunc += 1
+                        if snirfFile.nirs[nirsCountFunc].data[dataCountFunc].validFlag == 1:
+                            print(Fore.BLUE + gID[X].name + ' is a valid group field')
+                        else:
+                            print(Fore.RED + gID[X].name + ' is an INVALID group field')
+                            print(Fore.RED + gID[X].name + ' is missing:')
+                            for i in range(len(snirfFile.nirs[nirsCountFunc].data[dataCountFunc].missField)):
+                                print(Fore.RED + '\t' + snirfFile.nirs[nirsCountFunc].data[dataCountFunc].missField[i])
+                                invalidCountFunc += 1
+                                missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
+                                                      data[dataCountFunc].missField[i])
+                    elif 'stim' in X:
+                        snirfFile.nirs[nirsCountFunc].stim.append(read_stim(gID[X]))
+                        stimCountFunc += 1
+                        if snirfFile.nirs[nirsCountFunc].stim[stimCountFunc].validFlag == 1:
+                            print(Fore.BLUE + gID[X].name + ' is a valid group field')
+                        else:
+                            print(Fore.RED + gID[X].name + ' is an INVALID group field')
+                            print(Fore.RED + gID[X].name + ' is missing:')
+                            for i in range(len(snirfFile.nirs[nirsCountFunc].stim[stimCountFunc].missField)):
+                                print(Fore.RED + '\t' + snirfFile.nirs[nirsCountFunc].stim[stimCountFunc].missField[i])
+                                invalidCountFunc += 1
+                                missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
+                                                      stim[stimCountFunc].missField[i])
+                    elif 'probe' in X:
+                        snirfFile.nirs[nirsCountFunc].probe = read_probe(gID[X])
+                        if snirfFile.nirs[nirsCountFunc].probe.validFlag == 1:
+                            print(Fore.BLUE + gID[X].name + ' is a valid group field')
+                        else:
+                            print(Fore.RED + gID[X].name + ' is an INVALID group field')
+                            print(Fore.RED + gID[X].name + ' is missing:')
+                            for i in range(len(snirfFile.nirs[nirsCountFunc].probe.missField)):
+                                print(Fore.RED + '\t' + snirfFile.nirs[nirsCountFunc].probe.missField[i])
+                                invalidCountFunc += 1
+                                missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].probe.missField[i])
+                    elif 'aux' in X:
+                        snirfFile.nirs[nirsCountFunc].aux.append(read_aux(gID[X]))
+                        auxCountFunc += 1
+                        if snirfFile.nirs[nirsCountFunc].aux[auxCountFunc].validFlag == 1:
+                            print(Fore.BLUE + gID[X].name + ' is a valid group field')
+                        else:
+                            print(Fore.RED + gID[X].name + ' is an INVALID group field')
+                            print(Fore.RED + gID[X].name + ' is missing:')
+                            for i in range(len(snirfFile.nirs[nirsCountFunc].aux[auxCountFunc].missField)):
+                                print(Fore.RED + '\t' + snirfFile.nirs[nirsCountFunc].aux[auxCountFunc].missField[i])
+                                invalidCountFunc += 1
+                                missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
+                                                      aux[auxCountFunc].missField[i])
+
+                invalidCountFunc, invalidFldFunc, missingFldFunc = getallnames(
+                    gID[X], fieldLst, snirfFile, nirsCountFunc, dataCountFunc, stimCountFunc, auxCountFunc,
+                    invalidCountFunc, invalidFldFunc, missingFldFunc)
+
+        return invalidCountFunc, invalidFldFunc, missingFldFunc
+
+    lst = []
+    snirfData = snirf
+    snirfData.filename = fileID.filename
+    snirfData.formatVersion = formatVersion
+    nirsCount = -1
+    dataCount = -1
+    stimCount = -1
+    auxCount = -1
+    invalidCount = 0
+    invalidFld = []
+    missingFld = []
+
+    if fileOut is None:
+        print('-' * 40)
+        print('SNIRF Validator')
+        print('Version 2.0')
+        print('written by T. Huppert')
+        print('Updated by Team Lemon')
+        print()
+        print('File = {0}'.format(filename))
+        print('Version = {0}'.format(formatVersion))
+        print('-' * 40)
+
+        invalidCount, invalidFld, missingFld = getallnames(fileID, lst, snirfData, nirsCount, dataCount,
+                                                           stimCount, auxCount, invalidCount, invalidFld, missingFld)
 
         print('-' * 40)
-        if len(lstInvalid) != 0:
+        if invalidCount != 0:
             print(Fore.RED + "File is INVALID")
-            print(Fore.RED + '\tINVALID ENTRIES FOUND')
-            for x in lstInvalid:
-                print(Fore.RED + x)
+            print(Fore.RED + '\tINVALID FIELD(S) FOUND')
+            if len(invalidFld) == 0:
+                print(Fore.WHITE + 'NONE')
+            else:
+                for x in invalidFld:
+                    print(Fore.RED + x)
+            print(Fore.RED + '\tMISSING FIELD(S) FOUND')
+            if len(missingFld) == 0:
+                print(Fore.WHITE + 'NONE')
+            else:
+                for x in missingFld:
+                    print(Fore.RED + x)
         else:
             print(Fore.WHITE + "File is VALID")
         print(Style.RESET_ALL)
-    else:  # write to file
-        text_file = open(fileOut, "w")
-        text_file.write('\n' + '\n' + '-' * 40)
-        text_file.write('\n' + '\n' + 'SNIRF Validator')
-        text_file.write('\n' + '\n' + 'Version 1.0')
-        text_file.write('\n' + 'written by T. Huppert')
-        text_file.write('\n')
-        text_file.write('\n' + 'File = {0}'.format(filename))
-        text_file.write('\n' + 'Version = {0}'.format(formatVersion))
-        text_file.write('\n' + '-' * 40)
-
-        foundInvalid = 0
-
-        lstInvalid = []
-
-        for x in lst:
-            text_file.write('\n' + x)
-            val = fileID.get(x)
-            if h5py.check_string_dtype(val.dtype):
-                # string
-                if val.len() == 1:
-                    val = val[0].tobytes().decode('ascii')
-                    text_file.write('\n' + '\tHDF5-STRING: {0}'.format(val))
-                else:
-                    val2 = []
-                    for y in val:
-                        val2.append(y.tobytes().decode('ascii'))
-                    val2 = np.array(val2)
-                    text_file.write('\n' + '\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
-            else:
-                val = np.array(val)
-                if val.ndim == 1 and len(val) == 1:
-                    val = val[0]
-                    text_file.write('\n' + '\tHDF5-FLOAT: {0}'.format(val))
-                elif val.ndim == 1:
-                    text_file.write('\n' + '\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
-                else:
-                    text_file.write(
-                        '\n' + '\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val), int(val.size / len(val))))
-
-            dimcheck, actualDim = checkdim(x, fileID)
-            if not dimcheck:
-                print(Fore.RED + '\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim) + ')')
-                foundInvalid = foundInvalid + 1
-                lstInvalid.append(x)
-
-            if isrequired(x):
-                text_file.write('\n' + '\t\tRequired field')
-            elif isoptional(x):
-                text_file.write('\n' + '\t\tOptional field')
-            else:
-                text_file.write('\n' + '\t\tINVALID field')
-                foundInvalid = foundInvalid + 1
-                lstInvalid.append(x)
-
-        text_file.write('\n' + '-' * 40)
-        if len(lstInvalid) != 0:
-            text_file.write('\n' + "File is INVALID")
-            text_file.write('\n' + '\tINVALID ENTRIES FOUND')
-            for x in lstInvalid:
-                text_file.write('\n' + x)
-        else:
-            text_file.write('\n' + "File is VALID")
-        text_file.close()
-    return foundInvalid == 0
 
 
 def main():
