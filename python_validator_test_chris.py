@@ -106,8 +106,6 @@ class snirf:
     filename = None
     formatVersion = None
     nirs = []
-    validFlag = 0
-    missField = []
 
 
 def read_measurementList(gID):
@@ -255,6 +253,30 @@ def read_meta(gID):
         md.validFlag = 1
 
     return md
+
+
+def read_nirs(gID):
+    n = nirs
+    for fld in gID:
+        if 'metaDataTags' in fld:
+            n.metaDataTags = read_meta(gID[fld])
+        elif 'data' in fld:
+            n.data.append(read_data(gID[fld]))
+        elif 'stim' in fld:
+            n.stim.append(read_stim(gID[fld]))
+        elif 'probe' in fld:
+            n.probe = read_probe(gID[fld])
+        elif 'aux' in fld:
+            n.aux.append(read_aux(gID[fld]))
+
+    reqField = [n.metaDataTags, n.data, n.probe]
+
+    if any(elem is None or (isinstance(elem, list) and len(elem) == 0) for elem in reqField):
+        pass
+    else:
+        n.validFlag = 1
+
+    return n
 
 
 def hdfgetdata(gID, field):
@@ -436,13 +458,33 @@ def validate(filename, fileOut=None):
                 if not isinstance(gID[X], h5py.Dataset):
                     if 'nirs' in X:
                         if len(snirfFile.nirs) == 0:
-                            snirfFile.nirs.append(nirs())
+                            snirfFile.nirs.append(read_nirs(gID[X]))
                             nirsCountFunc += 1
+                            if snirfFile.nirs[nirsCountFunc].validFlag == 1:
+                                print(Fore.BLUE + gID[X].name + ' is a valid group field')
+                            else:
+                                print(Fore.RED + gID[X].name + ' is an INVALID group field')
+                                print(Fore.RED + gID[X].name + ' is missing:')
+                                for i in range(len(snirfFile.nirs[nirsCountFunc].missField)):
+                                    print(Fore.RED + '\t' + snirfFile.nirs[nirsCountFunc].missField[i])
+                                    invalidCountFunc += 1
+                                    missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
+                                                          missField[i])
                         else:
-                            snirfFile.nirs.append(nirs())
+                            snirfFile.nirs.append(read_nirs(gID[X]))
                             nirsCountFunc += 1
+                            if snirfFile.nirs[nirsCountFunc].validFlag == 1:
+                                print(Fore.BLUE + gID[X].name + ' is a valid group field')
+                            else:
+                                print(Fore.RED + gID[X].name + ' is an INVALID group field')
+                                print(Fore.RED + gID[X].name + ' is missing:')
+                                for i in range(len(snirfFile.nirs[nirsCountFunc].missField)):
+                                    print(Fore.RED + '\t' + snirfFile.nirs[nirsCountFunc].missField[i])
+                                    invalidCountFunc += 1
+                                    missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
+                                                          missField[i])
                     elif 'metaDataTags' in X:
-                        snirfFile.nirs[nirsCountFunc].metaDataTags = read_meta(gID[X])
+                        # snirfFile.nirs[nirsCountFunc].metaDataTags = read_meta(gID[X])
                         if snirfFile.nirs[nirsCountFunc].metaDataTags.validFlag == 1:
                             print(Fore.BLUE + gID[X].name + ' is a valid group field')
                         else:
@@ -454,7 +496,7 @@ def validate(filename, fileOut=None):
                                 missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
                                                       metaDataTags.missField[i])
                     elif 'data' in X:
-                        snirfFile.nirs[nirsCountFunc].data.append(read_data(gID[X]))
+                        # snirfFile.nirs[nirsCountFunc].data.append(read_data(gID[X]))
                         dataCountFunc += 1
                         if snirfFile.nirs[nirsCountFunc].data[dataCountFunc].validFlag == 1:
                             print(Fore.BLUE + gID[X].name + ' is a valid group field')
@@ -467,7 +509,7 @@ def validate(filename, fileOut=None):
                                 missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
                                                       data[dataCountFunc].missField[i])
                     elif 'stim' in X:
-                        snirfFile.nirs[nirsCountFunc].stim.append(read_stim(gID[X]))
+                        # snirfFile.nirs[nirsCountFunc].stim.append(read_stim(gID[X]))
                         stimCountFunc += 1
                         if snirfFile.nirs[nirsCountFunc].stim[stimCountFunc].validFlag == 1:
                             print(Fore.BLUE + gID[X].name + ' is a valid group field')
@@ -480,7 +522,7 @@ def validate(filename, fileOut=None):
                                 missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
                                                       stim[stimCountFunc].missField[i])
                     elif 'probe' in X:
-                        snirfFile.nirs[nirsCountFunc].probe = read_probe(gID[X])
+                        # snirfFile.nirs[nirsCountFunc].probe = read_probe(gID[X])
                         if snirfFile.nirs[nirsCountFunc].probe.validFlag == 1:
                             print(Fore.BLUE + gID[X].name + ' is a valid group field')
                         else:
@@ -491,7 +533,7 @@ def validate(filename, fileOut=None):
                                 invalidCountFunc += 1
                                 missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].probe.missField[i])
                     elif 'aux' in X:
-                        snirfFile.nirs[nirsCountFunc].aux.append(read_aux(gID[X]))
+                        # snirfFile.nirs[nirsCountFunc].aux.append(read_aux(gID[X]))
                         auxCountFunc += 1
                         if snirfFile.nirs[nirsCountFunc].aux[auxCountFunc].validFlag == 1:
                             print(Fore.BLUE + gID[X].name + ' is a valid group field')
