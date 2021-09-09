@@ -2,7 +2,7 @@ import h5py as h5py
 import numpy as np
 import re
 import colorama
-from colorama import Fore, Style
+from colorama import Fore
 import sys
 
 def validate(filename, optionalList):
@@ -139,7 +139,10 @@ def validate(filename, optionalList):
             else:
                 return False
 
+        # check spec dim and actual dim
         dimCheck, actualDim = checkSpecDim(gID)
+
+        # print actual dim and datatype, recheck for single value cases
         if h5py.check_string_dtype(gID.dtype): # string
             if gID.len() == 1:
                 val = gID[0].decode('ascii')
@@ -190,10 +193,23 @@ def validate(filename, optionalList):
 
     getAllNames(fileID)
 
-    print(invalidGroupNameList)
-    print(missingList)
-    print(invalidDatasetNameList)
-    print(invalidDatasetDimList)
+    Decision = False
+    if np.size(invalidGroupNameList) > 0:
+        print()
+        print('\t' + Fore.RED + invalidGroupNameList)
+    elif np.size(missingList) > 0:
+        print()
+        print(Fore.RED + missingList)
+    elif np.size(invalidDatasetNameList) > 0:
+        print()
+        print(Fore.RED + invalidDatasetNameList)
+    elif np.size(invalidDatasetDimList) > 0:
+        print()
+        print(Fore.RED + invalidDatasetDimList)
+    else:
+        Decision = True
+
+    return completeDatasetList, Decision
 
 def main():
     optionalList = ["/nirs\d*/data\w*/measurementList\d*/wavelengthActual",
@@ -211,9 +227,14 @@ def main():
                 "/nirs\d*/probe/landmarkPos3D", "/nirs\d*/probe/landmarkLabels", "/nirs\d*/probe/useLocalIndex",
                 "/nirs\d*/aux\d*/timeOffset", "/nirs\d*/stim\d*/dataLabels","/nirs\d*/stim\d*","/nirs\d*/aux\d*"]
 
-    filename=sys.argv[1]
-    print(Fore.MAGENTA + filename)
-    validate(filename, optionalList)
+    fileName=sys.argv[1]
+    print(Fore.MAGENTA + fileName)
+
+    [CompleteDatasetList,Decision] = validate(filename, optionalList)
+    if Decision == True:
+        print(Fore.GREEN + fileName +  " is valid!")
+    else:
+        print(Fore.RED + fileName + " is invalid!")
 
 if __name__ == "__main__":
     main()
