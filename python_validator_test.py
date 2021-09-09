@@ -230,7 +230,8 @@ def main():
     fileName=sys.argv[1]
     print(Fore.MAGENTA + fileName)
 
-    [CompleteDatasetList,Decision] = validate(filename, optionalList)
+    [CompleteDatasetList,Decision] = validate(fileName, optionalList)
+    print(Fore.WHITE + '----------------------------------')
     if Decision == True:
         print(Fore.GREEN + fileName +  " is valid!")
     else:
