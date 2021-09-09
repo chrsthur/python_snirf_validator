@@ -28,25 +28,6 @@ def hdfgetdata(gID, field):
 def validate(filename, optionalList):
     fileID = h5py.File(filename, 'r')
 
-    def getRequiredDataset(gID):
-        if 'measurementList' in gID.name:
-            required = ["sourceIndex", "detectorIndex", "wavelengthIndex", "dataType", "dataTypeIndex"]
-        elif 'data' in gID.name:
-            required = ["dataTimeSeries", "time", "measurementList"]
-        elif 'stim' in gID.name:
-            required = ["name", "data"]
-        elif 'aux' in gID.name:
-            required = ["name", "dataTimeSeries", "time"]
-        elif 'metaDataTags' in gID.name:
-            required = ["SubjectID", "MeasurementDate", "MeasurementTime", "LengthUnit", "TimeUnit", "FrequencyUnit"]
-        elif 'probe' in gID.name:
-            required = ["wavelengths"]
-        elif 'nirs' in gID.name:
-            required = ["metaDataTags", "data", "probe"]
-        else:
-            return 0
-        return required
-
     def checkSpecialCase(required, requiredIndex, child):
         if 'sourcePos2D' in child or 'detectorPos2D' in child:
             if 'sourcePos2D' not in required and 'detectPos2D' not in required:
@@ -73,21 +54,6 @@ def validate(filename, optionalList):
             for i in range(len(required)):
                 if requiredIndex[i] == 0:
                     missingList.append(Name + '/' + required[i])
-
-    def checkGroupChild(gID, required):
-        requiredIndex = [0] * len(required)
-        for child in gID:
-            requireFlag = False
-            if any(chr.isdigit() for chr in child):
-                [required, requiredIndex, childForCheck] = checkSpecialCase(required, requiredIndex, child)
-            else:
-                childForCheck = child
-            if childForCheck in required:  # if child in RequiredField, change RequiredIndex
-                requiredIndex[required.index(childForCheck)] = 1
-                requireFlag = True
-            printEverything(gID, child, optionalList, requireFlag)
-            getAllNames(gID[child])
-        checkRequiredIndex(gID.name, required, requiredIndex)
 
     def printEverything(gID, child, optionalList, requireFlag):
         if requireFlag == True:
@@ -128,6 +94,40 @@ def validate(filename, optionalList):
                     print(gID.name)
                     print(Fore.RED + '\tInvalid Indexed Group')
                     invalidGroupList.append(gID.name)
+
+    def getRequiredDataset(gID):
+        if 'measurementList' in gID.name:
+            required = ["sourceIndex", "detectorIndex", "wavelengthIndex", "dataType", "dataTypeIndex"]
+        elif 'data' in gID.name:
+            required = ["dataTimeSeries", "time", "measurementList"]
+        elif 'stim' in gID.name:
+            required = ["name", "data"]
+        elif 'aux' in gID.name:
+            required = ["name", "dataTimeSeries", "time"]
+        elif 'metaDataTags' in gID.name:
+            required = ["SubjectID", "MeasurementDate", "MeasurementTime", "LengthUnit", "TimeUnit", "FrequencyUnit"]
+        elif 'probe' in gID.name:
+            required = ["wavelengths"]
+        elif 'nirs' in gID.name:
+            required = ["metaDataTags", "data", "probe"]
+        else:
+            return 0
+        return required
+
+    def checkGroupChild(gID, required):
+        requiredIndex = [0] * len(required)
+        for child in gID:
+            requireFlag = False
+            if any(chr.isdigit() for chr in child):
+                [required, requiredIndex, childForCheck] = checkSpecialCase(required, requiredIndex, child)
+            else:
+                childForCheck = child
+            if childForCheck in required:  # if child in RequiredField, change RequiredIndex
+                requiredIndex[required.index(childForCheck)] = 1
+                requireFlag = True
+            printEverything(gID, child, optionalList, requireFlag)
+            getAllNames(gID[child])
+        checkRequiredIndex(gID.name, required, requiredIndex)
 
     def getAllNames(gID):
         if isinstance(gID, h5py.File):
