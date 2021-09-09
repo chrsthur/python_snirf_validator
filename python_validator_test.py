@@ -33,10 +33,10 @@ def validate(filename, optionalList):
         if requireFlag == True:
             if isinstance(gID[child], h5py.Dataset):
                 if "stim" in gID.name or "aux" in gID.name:
-                    print(Fore.WHITE + '\t' + gID.name + '/' + child)
+                    print(Fore.MAGENTA + '\t' + gID.name + '/' + child)
                     print(Fore.GREEN + '\t\tRequired Dataset When Parent Group ' + gID.name + ' Presents')
                 else:
-                    print(Fore.WHITE + '\t' + gID.name + '/' + child)
+                    print(Fore.MAGENTA + '\t' + gID.name + '/' + child)
                     print(Fore.GREEN + '\t\tRequired Dataset')
             if isinstance(gID[child], h5py.Group):
                 print(Fore.MAGENTA + gID[child].name)
@@ -46,7 +46,7 @@ def validate(filename, optionalList):
             for x in optionalList:
                 if re.match(x, gID[child].name):
                     if isinstance(gID[child], h5py.Dataset):
-                        print(Fore.WHITE + '\t' + gID.name + '/' + child)
+                        print(Fore.MAGENTA + '\t' + gID.name + '/' + child)
                         print(Fore.BLUE + '\t\tOptional Dataset')
                         OptionalFlag = True
                         break
@@ -58,16 +58,16 @@ def validate(filename, optionalList):
             if OptionalFlag == False:
                 if isinstance(gID[child], h5py.Dataset):
                     if 'metaDataTags' in gID.name:
-                        print(Fore.WHITE + '\t' + gID.name + '/' + child)
+                        print(Fore.MAGENTA + '\t' + gID.name + '/' + child)
                         print(Fore.YELLOW + '\t\tUser Defined optional Dataset')
                     else:
-                        print(Fore.WHITE + '\t' + gID.name + '/' + child)
+                        print(Fore.MAGENTA + '\t' + gID.name + '/' + child)
                         print(Fore.RED + '\t\tInvalid Dataset')
-                        invalidDatasetList.append(gID.name)
+                        invalidDatasetNameList.append(gID.name)
                 if isinstance(gID[child], h5py.Group):
-                    print(gID.name)
+                    print(Fore.MAGENTA + gID.name)
                     print(Fore.RED + '\tInvalid Indexed Group')
-                    invalidGroupList.append(gID.name)
+                    invalidGroupNameList.append(gID.name)
 
     def getRequiredDataset(gID):
         if 'measurementList' in gID.name:
@@ -149,7 +149,7 @@ def validate(filename, optionalList):
                 for y in gID:
                     val2.append(y.decode('ascii'))
                 val2 = np.array(val2)
-                print(Fore.CYAN + '\t\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
+                print(Fore.CYAN + '\t\tHDF5-STRING 1D-Array: <{0}x1>'.format(len(val2)))
         else:
             val = np.array(gID)
             if val.ndim == 1:
@@ -159,7 +159,7 @@ def validate(filename, optionalList):
                     if not dimCheck:
                         dimCheck = reCheck(gID)
                 else:
-                    print(Fore.CYAN + '\t\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
+                    print(Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array: <{0}x1>'.format(len(val)))
             elif val.ndim == 0:
                 print(Fore.CYAN + '\t\tHDF5-Integer 0D-Scalar <0x0>')
             else:
@@ -167,7 +167,7 @@ def validate(filename, optionalList):
 
         if not dimCheck:
             print(Fore.RED + '\t\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim) + ')')
-            invalidDatasetList.append(gID.name)
+            invalidDatasetDimList.append(gID.name)
 
     def getAllNames(gID):
         if isinstance(gID, h5py.File):
@@ -177,21 +177,23 @@ def validate(filename, optionalList):
             required = getRequiredDataset(gID)
             checkGroupChild(gID, required)
         elif isinstance(gID, h5py.Dataset):
-            completeList.append(gID.name)
+            completeDatasetList.append(gID.name)
             CheckDataset(gID)
         else:
             return 0
 
-    completeList = []
+    completeDatasetList = []
     missingList = []
-    invalidGroupList = []
-    invalidDatasetList = []
+    invalidGroupNameList = []
+    invalidDatasetNameList = []
+    invalidDatasetDimList = []
 
     getAllNames(fileID)
 
+    print(invalidGroupNameList)
     print(missingList)
-    print(invalidGroupList)
-    print(invalidDatasetList)
+    print(invalidDatasetNameList)
+    print(invalidDatasetDimList)
 
 def main():
     optionalList = ["/nirs\d*/data\w*/measurementList\d*/wavelengthActual",
