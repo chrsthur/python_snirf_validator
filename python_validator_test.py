@@ -5,26 +5,6 @@ import colorama
 from colorama import Fore, Style
 import sys
 
-def hdfgetdata(gID, field):
-    val = gID.get(field)
-    if val is None:
-        return val
-    if h5py.check_string_dtype(val.dtype):
-        # string
-        if val.len() == 1:
-            val = val[0].decode('ascii')
-            return val
-        else:
-            val2 = []
-            for x in val:
-                val2.append(x.decode('ascii'))
-            val2 = np.array(val2)
-            return val2
-    val = np.array(val)
-    if (val.ndim == 1 and len(val) == 1):
-        val = val[0]
-    return val
-
 def validate(filename, optionalList):
     fileID = h5py.File(filename, 'r')
 
@@ -48,12 +28,6 @@ def validate(filename, optionalList):
         else:
             childForCheck = ''.join(i for i in child if not i.isdigit())
         return required, requiredIndex, childForCheck
-
-    def checkRequiredIndex(Name, required, requiredIndex):
-        if 0 in requiredIndex:  # check if requiredIndex has 0, if so, append the name
-            for i in range(len(required)):
-                if requiredIndex[i] == 0:
-                    missingList.append(Name + '/' + required[i])
 
     def printEverything(gID, child, optionalList, requireFlag):
         if requireFlag == True:
@@ -127,21 +101,84 @@ def validate(filename, optionalList):
                 requireFlag = True
             printEverything(gID, child, optionalList, requireFlag)
             getAllNames(gID[child])
-        checkRequiredIndex(gID.name, required, requiredIndex)
+        if 0 in requiredIndex:  # check if requiredIndex has 0, if so, append the name
+            for i in range(len(required)):
+                if requiredIndex[i] == 0:
+                    missingList.append(Name + '/' + required[i])
+
+    def CheckDataset(gID):
+
+        def checkSpecDim(gID):
+            if "Pos2D" in gID.name or "Pos3D" in gID.name:
+                dim = 2
+            elif "dataTimeSeries" in gID.name:
+                if "aux" in gID.name:
+                    dim = 1
+                else:
+                    dim = 2
+            elif "measurementList" in gID.name:
+                if "dataTypeLabel" in gID.name:
+                    dim = 1
+                else:
+                    dim = 0
+            elif "stim" in gID.name and "data" in gID.name:
+                if "dataLabels" in gID.name:
+                    dim = 1
+                else:
+                    dim = 2
+            else:
+                dim = 1
+            if dim != len(gID.dims):
+                return False, dim
+            else:
+                return True, dim
+
+        def reCheck(gID):
+            if gID.shape == (1,):
+                return True
+            else:
+                return False
+
+        dimCheck, actualDim = checkSpecDim(gID)
+        if h5py.check_string_dtype(gID.dtype): # string
+            if gID.len() == 1:
+                val = gID[0].decode('ascii')
+                print(Fore.CYAN + '\t\tHDF5-STRING: {0}'.format(val))
+            else:
+                val2 = []
+                for y in gID:
+                    val2.append(y.decode('ascii'))
+                val2 = np.array(val2)
+                print(Fore.CYAN + '\t\tHDF5-STRING 1D-Vector: <{0}x1>'.format(len(val2)))
+        else:
+            val = np.array(gID)
+            if val.ndim == 1:
+                if len(val) == 1:
+                    val = val[0]
+                    print(Fore.CYAN + '\t\tHDF5-FLOAT: {0}'.format(val))
+                    if not dimCheck:
+                        dimCheck = reCheck(gID)
+                else:
+                    print(Fore.CYAN + '\t\tHDF5-FLOAT 1D-Vector: <{0}x1>'.format(len(val)))
+            elif val.ndim == 0:
+                print(Fore.CYAN + '\t\tHDF5-Integer 0D-Scalar <0x0>')
+            else:
+                print(Fore.CYAN + '\t\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val), int(val.size / len(val))))
+
+        if not dimCheck:
+            print(Fore.RED + '\t\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim) + ')')
+            invalidDatasetList.append(gID.name)
 
     def getAllNames(gID):
         if isinstance(gID, h5py.File):
             required = ["formatVersion", "nirs"]
             checkGroupChild(gID, required)
-
         elif isinstance(gID, h5py.Group):
             required = getRequiredDataset(gID)
             checkGroupChild(gID, required)
-
         elif isinstance(gID, h5py.Dataset):
             completeList.append(gID.name)
-            # datatype check
-            # dimension check
+            CheckDataset(gID)
         else:
             return 0
 
@@ -171,9 +208,10 @@ def main():
                 "/nirs\d*/probe/sourceLabels", "/nirs\d*/probe/detectorLabels", "/nirs\d*/probe/landmarkPos2D",
                 "/nirs\d*/probe/landmarkPos3D", "/nirs\d*/probe/landmarkLabels", "/nirs\d*/probe/useLocalIndex",
                 "/nirs\d*/aux\d*/timeOffset", "/nirs\d*/stim\d*/dataLabels","/nirs\d*/stim\d*","/nirs\d*/aux\d*"]
+
     filename=sys.argv[1]
     print(Fore.MAGENTA + filename)
-    validate(filename,optionalList)
+    validate(filename, optionalList)
 
 if __name__ == "__main__":
     main()
