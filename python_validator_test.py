@@ -195,16 +195,16 @@ def validate(filename, optionalList):
 
     Decision = False
     if np.size(invalidGroupNameList) > 0:
-        print()
+        print(Fore.RED + "Invalid Group Detected: ")
         print('\t' + Fore.RED + invalidGroupNameList)
     elif np.size(missingList) > 0:
-        print()
+        print(Fore.RED + "Missing Dataset/Group Detected: ")
         print(Fore.RED + missingList)
     elif np.size(invalidDatasetNameList) > 0:
-        print()
+        print(Fore.RED + "Invalid Dateset Detected: ")
         print(Fore.RED + invalidDatasetNameList)
     elif np.size(invalidDatasetDimList) > 0:
-        print()
+        print(Fore.RED + "Invalid Dataset Dimension Detected: ")
         print(Fore.RED + invalidDatasetDimList)
     else:
         Decision = True
