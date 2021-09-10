@@ -165,8 +165,10 @@ def validate(filename, optionalList):
                     print(Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array: <{0}x1>'.format(len(val)))
             elif val.ndim == 0:
                 print(Fore.CYAN + '\t\tHDF5-Integer 0D-Scalar <0x0>')
-            else:
+            elif val.ndim == 2:
                 print(Fore.CYAN + '\t\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val), int(val.size / len(val))))
+            else:
+                pass
 
         if not dimCheck:
             print(Fore.RED + '\t\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim) + ')')
