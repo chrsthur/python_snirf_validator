@@ -180,14 +180,17 @@ def validate(filename, optionalList):
 
         if isinstance(data, (int, np.integer)):
             actualType = int
+        elif gID.dtype == 'int64' or gID.dtype == 'int32':
+            actualType = int
         elif isinstance(data, str) or h5py.check_string_dtype(gID.dtype):
             actualType = str
-        elif "metaDataTags" in gID.name and not h5py.check_string_dtype(gID.dtype):
+        else:
+            actualType = float
+
+        if "metaDataTags" in gID.name and not h5py.check_string_dtype(gID.dtype):
             # implies an user defined field since all required datasets are string
             actualType = specType
             actualDim = specDim
-        else:
-            actualType = float
 
         # compare actual and spec, and print out correct statement
         if actualType.__name__ != specType.__name__:
