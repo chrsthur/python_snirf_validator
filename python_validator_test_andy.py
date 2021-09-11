@@ -108,70 +108,95 @@ def validate(filename, optionalList):
 
     def CheckDataset(gID):
 
-        def checkSpecDim(gID):
+        def GetSpec(gID):
+            # check spec dimension
             if "Pos2D" in gID.name or "Pos3D" in gID.name:
-                dim = 2
+                specDim = 2
             elif "dataTimeSeries" in gID.name:
                 if "aux" in gID.name:
-                    dim = 1
+                    specDim = 1
                 else:
-                    dim = 2
+                    specDim = 2
             elif "measurementList" in gID.name:
                 if "dataTypeLabel" in gID.name:
-                    dim = 1
+                    specDim = 1
                 else:
-                    dim = 0
+                    specDim = 0
             elif "stim" in gID.name and "data" in gID.name:
                 if "dataLabels" in gID.name:
-                    dim = 1
+                    specDim = 1
                 else:
-                    dim = 2
+                    specDim = 2
             else:
-                dim = 1
-            if dim != len(gID.dims):
-                return False, dim
+                specDim = 1
+
+            # check spec data type
+            if "metaDataTags" in gID.name or 'formatVersion' in gID.name:
+                specType = str
+            elif "name" in gID.name or "Label" in gID.name:
+                specType = str
+            elif "Index" in gID.name:
+                specType = int
+            elif "dataType" in gID.name:
+                specType = int
             else:
-                return True, dim
+                specType = float
 
-        def reCheck(gID):
-            if gID.shape == (1,):
-                return True
-            else:
-                return False
+            return specType, specDim
 
-        # check spec dim and actual dim
-        dimCheck, actualDim = checkSpecDim(gID)
+        # check spec datatype and dimension
+        specType, specDim = GetSpec(gID)
 
-        # print actual dim and datatype, recheck for single value cases
-        if h5py.check_string_dtype(gID.dtype): # string
+        # check actual data type and dimension
+        if h5py.check_string_dtype(gID.dtype):  # string
+            actualDim = 1
             if gID.len() == 1:
-                val = gID[0].decode('ascii')
-                print(Fore.CYAN + '\t\tHDF5-STRING: {0}'.format(val))
+                data = gID[0].decode('ascii')
+                print(Fore.CYAN + '\t\tHDF5-STRING')
             else:
-                val2 = []
+                data = []
                 for y in gID:
-                    val2.append(y.decode('ascii'))
-                val2 = np.array(val2)
-                print(Fore.CYAN + '\t\tHDF5-STRING 1D-Array: <{0}x1>'.format(len(val2)))
+                    data.append(y.decode('ascii'))
+                data = np.array(data)
+                print(Fore.CYAN + '\t\tHDF5-STRING 1D-Array')
         else:
-            val = np.array(gID)
-            if val.ndim == 1:
-                if len(val) == 1:
-                    val = val[0]
-                    print(Fore.CYAN + '\t\tHDF5-FLOAT: {0}'.format(val))
-                    if not dimCheck:
-                        dimCheck = reCheck(gID)
+            data = gID[()]
+            if gID.ndim == 2:
+                print(Fore.CYAN + '\t\tHDF5-FLOAT 2D-Array')
+                actualDim = gID.ndim
+            elif gID.ndim == 1:
+                dimensions = gID.shape
+                if dimensions[0] == 1:
+                    print(Fore.CYAN + '\t\tHDF5-FLOAT Point')
+                    actualDim = 0
                 else:
-                    print(Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array: <{0}x1>'.format(len(val)))
-            elif val.ndim == 0:
-                print(Fore.CYAN + '\t\tHDF5-Integer 0D-Scalar <0x0>')
-            elif val.ndim == 2:
-                print(Fore.CYAN + '\t\tHDF5-FLOAT 2D-Array: <{0}x{1}>'.format(len(val), int(val.size / len(val))))
+                    print(Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array')
+                    actualDim = gID.ndim
+            elif gID.ndim == 0:
+                print(Fore.CYAN + '\t\tHDF5-Integer')
+                actualDim = gID.ndim
             else:
-                pass
+                return
 
-        if not dimCheck:
-            print(Fore.RED + '\t\tINVALID dimensions(Expected Number of Dimensions: ' + str(actualDim) + ')')
+        if isinstance(data, (int, np.integer)):
+            actualType = int
+        elif isinstance(data, str) or h5py.check_string_dtype(gID.dtype):
+            actualType = str
+        elif "metaDataTags" in gID.name and not h5py.check_string_dtype(gID.dtype):
+            # implied an user defined field since all required datasets are string
+            actualType = specType
+            actualDim = specDim
+        else:
+            actualType = float
+
+        # compare actual and spec, and print out correct statement
+        if actualType.__name__ != specType.__name__:
+            print(Fore.RED + '\t\tINVALID Data Type! Expecting: ' + str(specType.__name__) +
+                  '! But ' + str(np.dtype(gID.dtype.type)) + ' was given.')
+            invalidDatasetTypeList.append(gID.name)
+        if actualDim != specDim:
+            print(Fore.RED + '\t\tINVALID Data Dimension! Expecting: ' + str(specDim) +
+                  '! But ' + str(gID.ndim) + ' was given.')
             invalidDatasetDimList.append(gID.name)
 
     def getAllNames(gID):
@@ -192,24 +217,32 @@ def validate(filename, optionalList):
     invalidGroupNameList = []
     invalidDatasetNameList = []
     invalidDatasetDimList = []
+    invalidDatasetTypeList = []
 
     getAllNames(fileID)
 
-    Decision = False
+    Decision = True
     if np.size(invalidGroupNameList) > 0:
         print(Fore.RED + "Invalid Group Detected: ")
-        print('\t' + Fore.RED + invalidGroupNameList)
-    elif np.size(missingList) > 0:
+        print(Fore.RED + str(invalidGroupNameList) + '\n')
+        Decision = False
+    if np.size(missingList) > 0:
         print(Fore.RED + "Missing Dataset/Group Detected: ")
-        print(Fore.RED + missingList)
-    elif np.size(invalidDatasetNameList) > 0:
-        print(Fore.RED + "Invalid Dateset Detected: ")
-        print(Fore.RED + invalidDatasetNameList)
-    elif np.size(invalidDatasetDimList) > 0:
-        print(Fore.RED + "Invalid Dataset Dimension Detected: ")
-        print(Fore.RED + invalidDatasetDimList)
-    else:
-        Decision = True
+        print(Fore.RED + str(missingList) + '\n')
+        Decision = False
+    if np.size(invalidDatasetNameList) > 0:
+        print(Fore.RED + "Invalid Dateset Detected: " )
+        print(Fore.RED + str(invalidDatasetNameList) + '\n')
+        Decision = False
+    if np.size(invalidDatasetTypeList) > 0:
+        print(Fore.RED + "Invalid Dataset Data Type Detected: ")
+        print(Fore.RED + str(invalidDatasetTypeList) + '\n')
+        Decision = False
+    if np.size(invalidDatasetDimList) > 0:
+        print(Fore.RED + "Invalid Dataset Dimension Detected: " )
+        print(Fore.RED + str(invalidDatasetDimList) + '\n')
+        Decision = False
+
 
     return completeDatasetList, Decision
 
