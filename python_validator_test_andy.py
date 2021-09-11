@@ -104,7 +104,7 @@ def validate(filename, optionalList):
         if 0 in requiredIndex:  # check if requiredIndex has 0, if so, append the name
             for i in range(len(required)):
                 if requiredIndex[i] == 0:
-                    missingList.append(Name + '/' + required[i])
+                    missingList.append(gID.name + '/' + required[i])
 
     def CheckDataset(gID):
 
@@ -183,7 +183,7 @@ def validate(filename, optionalList):
         elif isinstance(data, str) or h5py.check_string_dtype(gID.dtype):
             actualType = str
         elif "metaDataTags" in gID.name and not h5py.check_string_dtype(gID.dtype):
-            # implied an user defined field since all required datasets are string
+            # implies an user defined field since all required datasets are string
             actualType = specType
             actualDim = specDim
         else:
