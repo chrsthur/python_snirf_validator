@@ -456,8 +456,8 @@ def validate(filename, fileOut=None):
         else:
             for X in gID:
                 if not isinstance(gID[X], h5py.Dataset):
-                    if 'nirs' in X:
-                        if len(snirfFile.nirs) == 0:
+                    if 'nirs' in X:  # /nirs group
+                        if len(snirfFile.nirs) == 0:  # for the first /nirs group
                             snirfFile.nirs.append(read_nirs(gID[X]))
                             nirsCountFunc += 1
                             if snirfFile.nirs[nirsCountFunc].validFlag == 1:
@@ -470,7 +470,7 @@ def validate(filename, fileOut=None):
                                     invalidCountFunc += 1
                                     missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
                                                           missField[i])
-                        else:
+                        else:  # if there are more than one /nirs group
                             snirfFile.nirs.append(read_nirs(gID[X]))
                             nirsCountFunc += 1
                             if snirfFile.nirs[nirsCountFunc].validFlag == 1:
@@ -483,7 +483,7 @@ def validate(filename, fileOut=None):
                                     invalidCountFunc += 1
                                     missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
                                                           missField[i])
-                    elif 'metaDataTags' in X:
+                    elif 'metaDataTags' in X:  # metaDataTags group in /nirs
                         # snirfFile.nirs[nirsCountFunc].metaDataTags = read_meta(gID[X])
                         if snirfFile.nirs[nirsCountFunc].metaDataTags.validFlag == 1:
                             print(Fore.BLUE + gID[X].name + ' is a valid group field')
@@ -495,7 +495,7 @@ def validate(filename, fileOut=None):
                                 invalidCountFunc += 1
                                 missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
                                                       metaDataTags.missField[i])
-                    elif 'data' in X:
+                    elif 'data' in X:  # data group in /nirs
                         # snirfFile.nirs[nirsCountFunc].data.append(read_data(gID[X]))
                         dataCountFunc += 1
                         if snirfFile.nirs[nirsCountFunc].data[dataCountFunc].validFlag == 1:
@@ -508,7 +508,7 @@ def validate(filename, fileOut=None):
                                 invalidCountFunc += 1
                                 missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
                                                       data[dataCountFunc].missField[i])
-                    elif 'stim' in X:
+                    elif 'stim' in X:  # stim group in /nirs
                         # snirfFile.nirs[nirsCountFunc].stim.append(read_stim(gID[X]))
                         stimCountFunc += 1
                         if snirfFile.nirs[nirsCountFunc].stim[stimCountFunc].validFlag == 1:
@@ -521,7 +521,7 @@ def validate(filename, fileOut=None):
                                 invalidCountFunc += 1
                                 missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].
                                                       stim[stimCountFunc].missField[i])
-                    elif 'probe' in X:
+                    elif 'probe' in X:  # probe group in /nirs
                         # snirfFile.nirs[nirsCountFunc].probe = read_probe(gID[X])
                         if snirfFile.nirs[nirsCountFunc].probe.validFlag == 1:
                             print(Fore.BLUE + gID[X].name + ' is a valid group field')
@@ -532,7 +532,7 @@ def validate(filename, fileOut=None):
                                 print(Fore.RED + '\t' + snirfFile.nirs[nirsCountFunc].probe.missField[i])
                                 invalidCountFunc += 1
                                 missingFldFunc.append(gID[X].name + snirfFile.nirs[nirsCountFunc].probe.missField[i])
-                    elif 'aux' in X:
+                    elif 'aux' in X:  # aux group in /nirs
                         # snirfFile.nirs[nirsCountFunc].aux.append(read_aux(gID[X]))
                         auxCountFunc += 1
                         if snirfFile.nirs[nirsCountFunc].aux[auxCountFunc].validFlag == 1:
@@ -552,6 +552,7 @@ def validate(filename, fileOut=None):
 
         return invalidCountFunc, invalidFldFunc, missingFldFunc
 
+    # Initialize variables for validation process
     lst = []
     snirfData = snirf
     snirfData.filename = fileID.filename
@@ -564,48 +565,43 @@ def validate(filename, fileOut=None):
     invalidFld = []
     missingFld = []
 
-    if fileOut is None:
-        print('-' * 40)
-        print('SNIRF Validator')
-        print('Version 2.0')
-        print('written by T. Huppert')
-        print('Updated by Team Lemon')
-        print()
-        print('File = {0}'.format(filename))
-        print('Version = {0}'.format(formatVersion))
-        print('-' * 40)
+    print('-' * 40)
+    print('SNIRF Validator')
+    print('Version 2.0')
+    print('written by T. Huppert')
+    print('Updated by Team Lemon')
+    print()
+    print('File = {0}'.format(filename))
+    print('Version = {0}'.format(formatVersion))
+    print('-' * 40)
 
-        invalidCount, invalidFld, missingFld = getallnames(fileID, lst, snirfData, nirsCount, dataCount,
-                                                           stimCount, auxCount, invalidCount, invalidFld, missingFld)
+    invalidCount, invalidFld, missingFld = getallnames(fileID, lst, snirfData, nirsCount, dataCount,
+                                                       stimCount, auxCount, invalidCount, invalidFld, missingFld)
 
-        print('-' * 40)
-        if invalidCount != 0:
-            print(Fore.RED + "File is INVALID")
-            print(Fore.RED + '\tINVALID FIELD(S) FOUND')
-            if len(invalidFld) == 0:
-                print(Fore.WHITE + 'NONE')
-            else:
-                for x in invalidFld:
-                    print(Fore.RED + x)
-            print(Fore.RED + '\tMISSING FIELD(S) FOUND')
-            if len(missingFld) == 0:
-                print(Fore.WHITE + 'NONE')
-            else:
-                for x in missingFld:
-                    print(Fore.RED + x)
+    print('-' * 40)
+    if invalidCount != 0:
+        print(Fore.RED + "File is INVALID")
+        print(Fore.RED + '\tINVALID FIELD(S) FOUND')
+        if len(invalidFld) == 0:
+            print(Fore.WHITE + 'NONE')
         else:
-            print(Fore.WHITE + "File is VALID")
-        print(Style.RESET_ALL)
+            for x in invalidFld:
+                print(Fore.RED + x)
+        print(Fore.RED + '\tMISSING FIELD(S) FOUND')
+        if len(missingFld) == 0:
+            print(Fore.WHITE + 'NONE')
+        else:
+            for x in missingFld:
+                print(Fore.RED + x)
+    else:
+        print(Fore.WHITE + "File is VALID")
+    print(Style.RESET_ALL)
 
 
 def main():
     filename = sys.argv[1]
     print(filename)
-    if len(sys.argv) > 2:
-        fileOut = sys.argv[2]
-    else:
-        fileOut = None
-    validate(filename, fileOut)
+    validate(filename)
 
 
 if __name__ == "__main__":
