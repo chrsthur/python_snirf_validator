@@ -118,10 +118,12 @@ def validate(filename, optionalList):
                 else:
                     specDim = 2
             elif "measurementList" in gID.name:
-                if "dataTypeLabel" in gID.name:
-                    specDim = 1
-                else:
+                if "Index" in gID.name:
                     specDim = 0
+                elif "DataType" in gID.name and "Label" not in gID.name:
+                    specDim = 0
+                else:
+                    specDim = 1
             elif "stim" in gID.name and "data" in gID.name:
                 if "dataLabels" in gID.name:
                     specDim = 1
@@ -147,7 +149,7 @@ def validate(filename, optionalList):
         # check spec datatype and dimension
         specType, specDim = GetSpec(gID)
 
-        # check actual data type and dimension
+        # check actual data type and dimension, and print accordingly
         if h5py.check_string_dtype(gID.dtype):  # string
             actualDim = 1
             if gID.len() == 1:
@@ -168,10 +170,9 @@ def validate(filename, optionalList):
                 dimensions = gID.shape
                 if dimensions[0] == 1:
                     print(Fore.CYAN + '\t\tHDF5-FLOAT Point')
-                    actualDim = 0
                 else:
                     print(Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array')
-                    actualDim = gID.ndim
+                actualDim = gID.ndim
             elif gID.ndim == 0:
                 print(Fore.CYAN + '\t\tHDF5-Integer')
                 actualDim = gID.ndim
