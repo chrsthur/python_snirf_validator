@@ -118,12 +118,10 @@ def validate(filename, optionalList):
                 else:
                     specDim = 2
             elif "measurementList" in gID.name:
-                if "Index" in gID.name:
-                    specDim = 0
-                elif "DataType" in gID.name and "Label" not in gID.name:
-                    specDim = 0
-                else:
+                if "dataTypeLabel" in gID.name:
                     specDim = 1
+                else:
+                    specDim = 0
             elif "stim" in gID.name and "data" in gID.name:
                 if "dataLabels" in gID.name:
                     specDim = 1
@@ -167,21 +165,22 @@ def validate(filename, optionalList):
                 print(Fore.CYAN + '\t\tHDF5-FLOAT 2D-Array')
                 actualDim = gID.ndim
             elif gID.ndim == 1:
-                dimensions = gID.shape
-                if dimensions[0] == 1:
-                    print(Fore.CYAN + '\t\tHDF5-FLOAT Point')
-                else:
+                dimension = gID.shape
+                if dimension[0] == 1:
                     print(Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array')
-                actualDim = gID.ndim
+                    actualDim = 0
+                else:
+                    print(Fore.CYAN + '\t\tHDF5-FLOAT Point')
+                    actualDim = gID.ndim
             elif gID.ndim == 0:
                 print(Fore.CYAN + '\t\tHDF5-Integer')
                 actualDim = gID.ndim
             else:
                 return
 
-        if isinstance(data, (int, np.integer)):
+        if gID.dtype == 'int64' or gID.dtype == 'int32':
             actualType = int
-        elif gID.dtype == 'int64' or gID.dtype == 'int32':
+        elif gID.dtype == 'uint64' or gID.dtype == 'uint32':
             actualType = int
         elif isinstance(data, str) or h5py.check_string_dtype(gID.dtype):
             actualType = str
