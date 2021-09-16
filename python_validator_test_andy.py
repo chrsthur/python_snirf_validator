@@ -4,6 +4,93 @@ import re
 import colorama
 from colorama import Fore
 import sys
+import os
+from tkinter import filedialog
+
+class measurementList:
+    sourceIndex = None
+    detectorIndex = None
+    wavelengthIndex = None
+    wavelengthActual = None
+    wavelengthEmissionsActual = None
+    dataType = None
+    dataTypeLabel = None
+    dataTypeIndex = None
+    sourcePower = None
+    detectorGain = None
+    moduleIndex = None
+    sourceModuleIndex = None
+    detectorModuleIndex = None
+    validFlag = 0
+    missField = []
+
+class data:
+    dataTimeSeries = None
+    time = None
+    measurementList = measurementList()
+    validFlag = 0
+    missField = []
+
+class probe:
+    wavelengths = None
+    wavelengthsEmission = None
+    sourcePos2D = None
+    sourcePos3D = None
+    detectorPos2D = None
+    detectorPos3D = None
+    frequencies = None
+    timeDelays = None
+    timeDelayWidths = None
+    momentOrder = None
+    correlationTimeDelays = None
+    correlationTimeDelayWidths = None
+    sourceLabels = None
+    detectorLabels = None
+    landmarkPos2D = None
+    landmarkPos3D = None
+    landmarkLabels = None
+    useLocalIndex = None
+    validFlag = 0
+    missField = []
+
+class aux:
+    name = None
+    dataTimeSeries = None
+    time = None
+    timeOffSet = None
+    validFlag = 0
+    missField = []
+
+class stim:
+    name = None
+    data = None
+    dataLabels = None
+    validFlag = 0
+    missField = []
+
+class metaDataTags:
+    SubjectID = None
+    MeasurementDate = None
+    MeasurementTime = None
+    LengthUnit = None
+    TimeUnit = None
+    FrequencyUnit = None
+    validFlag = 0
+    missField = []
+
+class nirs:
+    data = []
+    stim = []
+    probe = probe()
+    aux = []
+    metaDataTags = metaDataTags()
+    validFlag = 0
+    missField = []
+
+class snirf:
+    filename = None
+    formatVersion = None
+    nirs = []
 
 def validate(filename, optionalList):
     fileID = h5py.File(filename, 'r')
@@ -247,7 +334,6 @@ def validate(filename, optionalList):
         print(Fore.RED + str(invalidDatasetDimList) + '\n')
         Decision = False
 
-
     return completeDatasetList, Decision
 
 def main():
@@ -266,8 +352,14 @@ def main():
                 "/nirs\d*/probe/landmarkPos3D", "/nirs\d*/probe/landmarkLabels", "/nirs\d*/probe/useLocalIndex",
                 "/nirs\d*/aux\d*/timeOffset", "/nirs\d*/stim\d*/dataLabels","/nirs\d*/stim\d*","/nirs\d*/aux\d*"]
 
-    fileName=sys.argv[1]
-    print(Fore.MAGENTA + fileName)
+    if sys.argv.__len__() > 1:
+        fileName=sys.argv[1]
+        print(Fore.MAGENTA + fileName)
+    else:
+        fileName = filedialog.askopenfilename(title='Please select a SNIRF file.',
+                                       filetypes=[('SNIRF File', ['.snirf'])])
+        if not fileName:
+            return None
 
     [CompleteDatasetList,Decision] = validate(fileName, optionalList)
     print(Fore.WHITE + '----------------------------------')
