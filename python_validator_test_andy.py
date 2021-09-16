@@ -164,7 +164,8 @@ def validate(filename, optionalList):
             if gID.ndim == 2:
                 print(Fore.CYAN + '\t\tHDF5-FLOAT 2D-Array')
                 actualDim = gID.ndim
-            elif gID.ndim == 1:
+
+            elif gID.ndim == 1:  # always a float
                 dimension = gID.shape
                 if dimension[0] == 1:
                     print(Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array')
@@ -199,7 +200,7 @@ def validate(filename, optionalList):
             invalidDatasetTypeList.append(gID.name)
         if actualDim != specDim:
             print(Fore.RED + '\t\tINVALID Data Dimension! Expecting: ' + str(specDim) +
-                  '! But ' + str(gID.ndim) + ' was given.')
+                  '! But ' + str(actualDim) + ' was given.')
             invalidDatasetDimList.append(gID.name)
 
     def getAllNames(gID):
