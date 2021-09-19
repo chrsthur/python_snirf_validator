@@ -1,12 +1,11 @@
 import h5py as h5py
 import numpy as np
 import re
-import colorama
-from colorama import Fore,Style
+from colorama import Fore, Style
 import sys
-import os
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+
 
 def printDataset(oneClass):
     for attribute in oneClass.__dict__.keys():
@@ -15,17 +14,21 @@ def printDataset(oneClass):
             if not callable(value):
                 print('\t' + attribute, '=', value)
 
+
 class auxClass:
     def Print(self):
         printDataset(self)
+
 
 class probeClass:
     def Print(self):
         printDataset(self)
 
+
 class stimClass:
     def Print(self):
         printDataset(self)
+
 
 class dataClass:
     def Print(self):
@@ -38,13 +41,16 @@ class dataClass:
                     print('\t' + attribute + ':')
                     value.Print(self=value)
 
+
 class metaDataTagsClass:
     def Print(self):
         printDataset(self)
 
+
 class measurementListClass:
     def Print(self):
         printDataset(self)
+
 
 class nirsClass:
 
@@ -74,6 +80,7 @@ class nirsClass:
                     print(attribute + ':')
                     value.Print(self=value)
 
+
 class snirfClass:
     def addGroup(self, groupName):
         setattr(self, groupName, nirsClass)
@@ -87,6 +94,7 @@ class snirfClass:
                 else:
                     print(attribute + ':')
                     value.Print(self=value)
+
 
 def getData(gID):
     # check actual data type and dimension, and print accordingly
@@ -121,8 +129,8 @@ def getData(gID):
             return
     return actualDim, data, msg
 
-def validate(fileID):
 
+def validate(fileID):
     def CheckDataset(gID):
 
         # check spec datatype and dimension
@@ -207,7 +215,7 @@ def validate(fileID):
         return required, requiredIndex, childForCheck
 
     def printEverything(gID, child, requireFlag):
-        if requireFlag == True:
+        if requireFlag:
             if isinstance(gID[child], h5py.Dataset):
                 if "stim" in gID.name or "aux" in gID.name:
                     print(Fore.MAGENTA + '\t' + gID.name + '/' + child)
@@ -233,7 +241,7 @@ def validate(fileID):
                         print(Fore.BLUE + '\tOptional Indexed Group')
                         OptionalFlag = True
                         break
-            if OptionalFlag == False:
+            if not OptionalFlag:
                 if isinstance(gID[child], h5py.Dataset):
                     if 'metaDataTags' in gID.name:
                         print(Fore.MAGENTA + '\t' + gID.name + '/' + child)
@@ -339,7 +347,7 @@ def validate(fileID):
         print(Fore.RED + str(missingList) + '\n')
         Decision = False
     if np.size(invalidDatasetNameList) > 0:
-        print(Fore.RED + "Invalid Dateset Detected: " )
+        print(Fore.RED + "Invalid Dateset Detected: ")
         print(Fore.RED + str(invalidDatasetNameList) + '\n')
         Decision = False
     if np.size(invalidDatasetTypeList) > 0:
@@ -347,11 +355,12 @@ def validate(fileID):
         print(Fore.RED + str(invalidDatasetTypeList) + '\n')
         Decision = False
     if np.size(invalidDatasetDimList) > 0:
-        print(Fore.RED + "Invalid Dataset Dimension Detected: " )
+        print(Fore.RED + "Invalid Dataset Dimension Detected: ")
         print(Fore.RED + str(invalidDatasetDimList) + '\n')
         Decision = False
 
     return completeDatasetList, Decision
+
 
 def buildDataset(oneClass, oneGroup):
     if isinstance(oneGroup, h5py.Group):
@@ -362,10 +371,11 @@ def buildDataset(oneClass, oneGroup):
                 setattr(oneClass, xx, data)
             else:
                 setattr(oneClass, xx, measurementListClass)
-                newClass = getattr(oneClass,xx)
+                newClass = getattr(oneClass, xx)
                 buildDataset(newClass, oneDataset)
 
     return oneClass
+
 
 def buildSnirf(fileID):
     # generate snirf class
@@ -376,7 +386,7 @@ def buildSnirf(fileID):
             for jj in oneName.keys():  # /nirs
                 oneSnirf.addGroup(self=oneSnirf, groupName=ii)
                 oneNirs = getattr(oneSnirf, ii)
-                oneNirs.addGroup(self=oneNirs,groupName=jj)
+                oneNirs.addGroup(self=oneNirs, groupName=jj)
                 buildDataset(getattr(oneNirs, jj), oneName[jj])
         else:
             if h5py.check_string_dtype(oneName.dtype):
@@ -384,15 +394,16 @@ def buildSnirf(fileID):
 
     return oneSnirf
 
+
 def main():
     # Load File
     if sys.argv.__len__() > 1:
-        fileName=sys.argv[1]
+        fileName = sys.argv[1]
         print(Fore.MAGENTA + fileName)
     else:
         Tk().withdraw()
         fileName = askopenfilename(title='Please select a SNIRF file.',
-                                       filetypes=[('SNIRF File', ['.snirf'])])
+                                   filetypes=[('SNIRF File', ['.snirf'])])
         if not fileName:
             return None
 
@@ -406,13 +417,50 @@ def main():
     [CompleteDatasetList, Decision] = validate(fileID)
 
     print(Fore.WHITE + '----------------------------------')
-    if Decision == True:
+    if Decision:
         print(Fore.GREEN + fileName + " is valid!")
     else:
         print(Fore.RED + fileName + " is invalid!")
 
     print(Style.RESET_ALL)
-    return CompleteDatasetList, oneSnirf
+    return CompleteDatasetList, oneSnirf, fileName
 
-[CompleteDatasetList, oneSnirf] = main()
-oneSnirf.Print(self=oneSnirf)
+
+def writeGroup(f, groupObj, attribute):
+    grp = f.create_group(attribute)
+
+    for field in groupObj.__dict__.keys():
+        if field[:2] != '__' and 'addGroup' not in field and 'Print' not in field:
+            if isinstance(getattr(groupObj, field), type):
+                writeGroup(grp, eval('groupObj.' + field), field)
+            else:
+                if isinstance(getattr(groupObj, field), str):
+                    grp.create_dataset(field, data=[eval('groupObj.' + field + ".encode('UTF-8')")])
+                elif isinstance(getattr(groupObj, field), np.ndarray):
+                    if isinstance(getattr(groupObj, field)[0], str):
+                        grpField = eval('groupObj.' + field)
+                        strArray = [grpField[i].encode('UTF-8') for i in range(grpField.size)]
+                        grp.create_dataset(field, data=strArray)
+                    else:
+                        grp.create_dataset(field, data=eval('groupObj.' + field))
+                else:
+                    grp.create_dataset(field, data=eval('groupObj.' + field))
+
+    return f
+
+
+def saveSnirfClass(snirfObject, fName):
+    fname = fName.replace(".snirf", "") + "_validated.snirf"
+
+    with h5py.File(fname, 'w') as f:
+        for attribute in snirfObject.__dict__.keys():
+            if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
+                if isinstance(getattr(snirfObject, attribute), type):
+                    f = writeGroup(f, eval('oneSnirf.' + attribute), attribute)
+                else:
+                    f.create_dataset(attribute, data=[eval('oneSnirf.' + attribute)])
+
+
+[CompleteDatasetList, oneSnirf, fileName] = main()
+# oneSnirf.Print(self=oneSnirf)
+saveSnirfClass(oneSnirf, fileName)
