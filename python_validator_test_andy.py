@@ -46,7 +46,7 @@ class measurementListClass:
     def Print(self):
         printDataset(self)
 
-class snirfClass:
+class nirsClass:
 
     def addGroup(self, groupName):
         if "aux" in groupName:
@@ -73,7 +73,20 @@ class snirfClass:
                 else:
                     print(attribute + ':')
                     value.Print(self=value)
-        return
+
+class snirfClass:
+    def addGroup(self, groupName):
+        setattr(self, groupName, nirsClass)
+
+    def Print(self):
+        for attribute in self.__dict__.keys():
+            if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
+                value = getattr(self, attribute)
+                if not callable(value):
+                    print(attribute, '=', value)
+                else:
+                    print(attribute + ':')
+                    value.Print(self=value)
 
 def getData(gID):
     # check actual data type and dimension, and print accordingly
@@ -361,8 +374,10 @@ def buildSnirf(fileID):
         oneName = fileID[ii]
         if isinstance(oneName, h5py.Group):
             for jj in oneName.keys():  # /nirs
-                oneSnirf.addGroup(self=oneSnirf, groupName=jj)
-                buildDataset(getattr(oneSnirf, jj), oneName[jj])
+                oneSnirf.addGroup(self=oneSnirf, groupName=ii)
+                oneNirs = getattr(oneSnirf, ii)
+                oneNirs.addGroup(self=oneNirs,groupName=jj)
+                buildDataset(getattr(oneNirs, jj), oneName[jj])
         else:
             if h5py.check_string_dtype(oneName.dtype):
                 setattr(oneSnirf, ii, oneName[0].decode('ascii'))
