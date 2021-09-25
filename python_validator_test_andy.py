@@ -8,6 +8,42 @@ from tkinter.filedialog import askopenfilename
 
 def validate(fileID):
 
+    def getSpec(gID):
+        # check spec dimension
+        if "Pos2D" in gID.name or "Pos3D" in gID.name:
+            specDim = 2
+        elif "dataTimeSeries" in gID.name:
+            if "aux" in gID.name:
+                specDim = 1
+            else:
+                specDim = 2
+        elif "measurementList" in gID.name:
+            if "dataTypeLabel" in gID.name:
+                specDim = 1
+            else:
+                specDim = 0
+        elif "stim" in gID.name and "data" in gID.name:
+            if "dataLabels" in gID.name:
+                specDim = 1
+            else:
+                specDim = 2
+        else:
+            specDim = 1
+
+        # check spec data type
+        if "metaDataTags" in gID.name or 'formatVersion' in gID.name:
+            specType = str
+        elif "name" in gID.name or "Label" in gID.name:
+            specType = str
+        elif "Index" in gID.name:
+            specType = int
+        elif "dataType" in gID.name:
+            specType = int
+        else:
+            specType = float
+
+        return specType, specDim
+
     def getData(gID):
         # check actual data type and dimension, and print accordingly
         if h5py.check_string_dtype(gID.dtype):  # string
@@ -29,10 +65,13 @@ def validate(fileID):
             elif gID.ndim == 1:  # always a float
                 dimension = gID.shape
                 if dimension[0] == 1:
-                    msg = Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array'
+                    if 'int' in gID.dtype.name:
+                        msg = Fore.CYAN + '\t\tHDF5-Integer'
+                    else:
+                        msg = Fore.CYAN + '\t\tHDF5-Single Float'
                     actualDim = 0
                 else:
-                    msg = Fore.CYAN + '\t\tHDF5-FLOAT Point'
+                    msg = Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array'
                     actualDim = gID.ndim
             elif gID.ndim == 0:
                 msg = Fore.CYAN + '\t\tHDF5-Integer'
@@ -40,37 +79,6 @@ def validate(fileID):
             else:
                 return
         return actualDim, data, msg
-
-    def CheckDataset(gID):
-
-        # check spec datatype and dimension
-        specType, specDim = getSpec(gID)
-        [actualDim, data, msg] = getData(gID)
-        print(msg)
-
-        if gID.dtype == 'int64' or gID.dtype == 'int32':
-            actualType = int
-        elif gID.dtype == 'uint64' or gID.dtype == 'uint32':
-            actualType = int
-        elif isinstance(data, str) or h5py.check_string_dtype(gID.dtype):
-            actualType = str
-        else:
-            actualType = float
-
-        if "metaDataTags" in gID.name and not h5py.check_string_dtype(gID.dtype):
-            # implies an user defined field since all required datasets are string
-            actualType = specType
-            actualDim = specDim
-
-        # compare actual and spec, and print out correct statement
-        if actualType.__name__ != specType.__name__:
-            print(Fore.RED + '\t\tINVALID Data Type! Expecting: ' + str(specType.__name__) +
-                  '! But ' + str(np.dtype(gID.dtype.type)) + ' was given.')
-            invalidDatasetTypeList.append(gID.name)
-        if actualDim != specDim:
-            print(Fore.RED + '\t\tINVALID Data Dimension! Expecting: ' + str(specDim) +
-                  '! But ' + str(actualDim) + ' was given.')
-            invalidDatasetDimList.append(gID.name)
 
     def getAllNames(gID):
         if isinstance(gID, h5py.File):
@@ -202,41 +210,36 @@ def validate(fileID):
                 if requiredIndex[i] == 0:
                     missingList.append(gID.name + '/' + required[i])
 
-    def getSpec(gID):
-        # check spec dimension
-        if "Pos2D" in gID.name or "Pos3D" in gID.name:
-            specDim = 2
-        elif "dataTimeSeries" in gID.name:
-            if "aux" in gID.name:
-                specDim = 1
-            else:
-                specDim = 2
-        elif "measurementList" in gID.name:
-            if "dataTypeLabel" in gID.name:
-                specDim = 1
-            else:
-                specDim = 0
-        elif "stim" in gID.name and "data" in gID.name:
-            if "dataLabels" in gID.name:
-                specDim = 1
-            else:
-                specDim = 2
-        else:
-            specDim = 1
+    def CheckDataset(gID):
 
-        # check spec data type
-        if "metaDataTags" in gID.name or 'formatVersion' in gID.name:
-            specType = str
-        elif "name" in gID.name or "Label" in gID.name:
-            specType = str
-        elif "Index" in gID.name:
-            specType = int
-        elif "dataType" in gID.name:
-            specType = int
-        else:
-            specType = float
+        # check spec datatype and dimension
+        specType, specDim = getSpec(gID)
+        [actualDim, data, msg] = getData(gID)
+        print(msg)
 
-        return specType, specDim
+        if gID.dtype == 'int64' or gID.dtype == 'int32':
+            actualType = int
+        elif gID.dtype == 'uint64' or gID.dtype == 'uint32':
+            actualType = int
+        elif isinstance(data, str) or h5py.check_string_dtype(gID.dtype):
+            actualType = str
+        else:
+            actualType = float
+
+        if "metaDataTags" in gID.name and not h5py.check_string_dtype(gID.dtype):
+            # implies an user defined field since all required datasets are string
+            actualType = specType
+            actualDim = specDim
+
+        # compare actual and spec, and print out correct statement
+        if actualType.__name__ != specType.__name__:
+            print(Fore.RED + '\t\tINVALID Data Type! Expecting: ' + str(specType.__name__) +
+                  '! But ' + str(np.dtype(gID.dtype.type)) + ' was given.')
+            invalidDatasetTypeList.append(gID.name)
+        if actualDim != specDim:
+            print(Fore.RED + '\t\tINVALID Data Dimension! Expecting: ' + str(specDim) +
+                  '! But ' + str(actualDim) + ' was given.')
+            invalidDatasetDimList.append(gID.name)
 
     completeDatasetList = []
 
