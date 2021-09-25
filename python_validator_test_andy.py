@@ -6,8 +6,8 @@ import sys
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-def validate(fileName):
-    fileID = h5py.File(fileName, 'r')
+def validate(filePath):
+    fileID = h5py.File(filePath, 'r')
 
     def getSpec(gID):
         # check spec dimension
@@ -256,7 +256,9 @@ def validate(fileName):
     # validate starts
     getAllNames(fileID)
 
+    # print validation details
     Decision = True
+    print('\n')
     if np.size(invalidGroupNameList) > 0:
         print(Fore.YELLOW + "Warning!")
         print(Fore.YELLOW + "Invalid Group Detected: ")
@@ -280,9 +282,9 @@ def validate(fileName):
 
     print(Fore.WHITE + '----------------------------------')
     if Decision:
-        print(Fore.GREEN + fileName + " is valid!")
+        print(Fore.GREEN + filePath + " is valid!")
     else:
-        print(Fore.RED + fileName + " is invalid!")
+        print(Fore.RED + filePath + " is invalid!")
 
     print(Style.RESET_ALL)
 
@@ -291,16 +293,16 @@ def validate(fileName):
 def main():
     # Load File
     if sys.argv.__len__() > 1:
-        fileName = sys.argv[1]
-        print(Fore.MAGENTA + fileName)
+        filePath = sys.argv[1]
+        print(Fore.MAGENTA + filePath)
     else:
         Tk().withdraw()
-        fileName = askopenfilename(title='Please select a SNIRF file.',
+        filePath = askopenfilename(title='Please select a SNIRF file.',
                                    filetypes=[('SNIRF File', ['.snirf'])])
-        if not fileName:
+        if not filePath:
             return None
 
     # validate
-    validate(fileName)
+    validate(filePath)
 
 main()
