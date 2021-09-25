@@ -8,73 +8,55 @@ from tkinter.filedialog import askopenfilename
 
 class SnirfClass:
 
+    def __init__(self):
+        return
+
+    def addGroup(self, groupName):
+        setattr(self, groupName, SnirfClass.NirsClass)
+
     class NirsClass:
+        def __init__(self):
+            return
+
         class AuxClass:
-            def Print(self):
-                printDataset(self)
+            def __init__(self):
+                return
 
         class ProbeClass:
-            def Print(self):
-                printDataset(self)
+            def __init__(self):
+                return
 
         class StimClass:
-            def Print(self):
-                printDataset(self)
+            def __init__(self):
+                return
 
         class DataClass:
+            def __init__(self):
+                return
 
             class MeasurementListClass:
                 def __init__(self):
                     return
 
-                def __str__(self):
-                    return printDatast(oneClass=self)
-
-            def Print(self):
-                for attribute in self.__dict__.keys():
-                    if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
-                        value = getattr(self, attribute)
-                        if not callable(value):
-                            print(attribute, '=', value)
-                        else:
-                            print('\t' + attribute + ':')
-                            value.Print(self=value)
-
         class MetaDataTagsClass:
-            def Print(self):
-                printDataset(self)
-
-        def __init__(self):
-            return
+            def __init__(self):
+                return
 
         def addGroup(self, groupName):
             if "aux" in groupName:
-                setattr(self, groupName, AuxClass)
+                setattr(self, groupName, SnirfClass.NirsClass.AuxClass)
             elif "probe" in groupName:
-                setattr(self, groupName, ProbeClass)
+                setattr(self, groupName, SnirfClass.NirsClass.ProbeClass)
             elif "stim" in groupName:
-                setattr(self, groupName, StimClass)
+                setattr(self, groupName, SnirfClass.NirsClass.StimClass)
             elif "data" in groupName:
-                setattr(self, groupName, DataClass)
+                setattr(self, groupName, SnirfClass.NirsClass.DataClass)
             elif "metaDataTags" in groupName:
-                setattr(self, groupName, MetaDataTagsClass)
+                setattr(self, groupName, SnirfClass.NirsClass.MetaDataTagsClass)
             elif "measurementList" in groupName:
-                setattr(self, groupName, MeasurementListClass)
+                setattr(self, groupName, SnirfClass.NirsClass.DataClass.MeasurementListClass)
             else:
                 return
-
-        def Print(self):
-            for attribute in self.__dict__.keys():
-                if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
-                    value = getattr(self, attribute)
-                    if not callable(value):
-                        print(attribute, '=', value)
-                    else:
-                        print(attribute + ':')
-                        value.Print(self=value)
-
-    def addGroup(self, groupName):
-        setattr(self, groupName, NirsClass)
 
 
 def printDataset(oneClass):
@@ -130,7 +112,7 @@ def buildSnirfClass(filePath):
                     [actualDim, data, msg] = getData(oneDataset)
                     setattr(oneClass, xx, data)
                 else:
-                    setattr(oneClass, xx, measurementListClass)
+                    setattr(oneClass, xx, SnirfClass.NirsClass.DataClass.MeasurementListClass)
                     newClass = getattr(oneClass, xx)
                     buildDataset(newClass, oneDataset)
         return oneClass
@@ -187,3 +169,12 @@ def saveSnirfClass(snirfObject, fName):
                     f = writeGroup(f, eval('oneSnirf.' + attribute), attribute)
                 else:
                     f.create_dataset(attribute, data=[eval('oneSnirf.' + attribute)])
+
+# def main():
+#     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
+#     test = buildSnirfClass((filePath))
+#
+#     return test
+#
+# test = main()
+#print(test)
