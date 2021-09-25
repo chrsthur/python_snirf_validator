@@ -6,6 +6,51 @@ import sys
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
+
+class NirsClass:
+    def __init__(self):
+        return
+
+    class AuxClass:
+        def __init__(self):
+            return
+
+    class ProbeClass:
+        def __init__(self):
+            return
+
+    class StimClass:
+        def __init__(self):
+            return
+
+    class DataClass:
+        def __init__(self):
+            return
+
+        class MeasurementListClass:
+            def __init__(self):
+                return
+
+    class MetaDataTagsClass:
+        def __init__(self):
+            return
+
+    def addGroup(self, groupName):
+        if "aux" in groupName:
+            setattr(self, groupName, SnirfClass.NirsClass.AuxClass)
+        elif "probe" in groupName:
+            setattr(self, groupName, SnirfClass.NirsClass.ProbeClass)
+        elif "stim" in groupName:
+            setattr(self, groupName, SnirfClass.NirsClass.StimClass)
+        elif "data" in groupName:
+            setattr(self, groupName, SnirfClass.NirsClass.DataClass)
+        elif "metaDataTags" in groupName:
+            setattr(self, groupName, SnirfClass.NirsClass.MetaDataTagsClass)
+        elif "measurementList" in groupName:
+            setattr(self, groupName, SnirfClass.NirsClass.DataClass.MeasurementListClass)
+        else:
+            return
+
 class SnirfClass:
 
     def __init__(self):
@@ -13,51 +58,6 @@ class SnirfClass:
 
     def addGroup(self, groupName):
         setattr(self, groupName, SnirfClass.NirsClass)
-
-    class NirsClass:
-        def __init__(self):
-            return
-
-        class AuxClass:
-            def __init__(self):
-                return
-
-        class ProbeClass:
-            def __init__(self):
-                return
-
-        class StimClass:
-            def __init__(self):
-                return
-
-        class DataClass:
-            def __init__(self):
-                return
-
-            class MeasurementListClass:
-                def __init__(self):
-                    return
-
-        class MetaDataTagsClass:
-            def __init__(self):
-                return
-
-        def addGroup(self, groupName):
-            if "aux" in groupName:
-                setattr(self, groupName, SnirfClass.NirsClass.AuxClass)
-            elif "probe" in groupName:
-                setattr(self, groupName, SnirfClass.NirsClass.ProbeClass)
-            elif "stim" in groupName:
-                setattr(self, groupName, SnirfClass.NirsClass.StimClass)
-            elif "data" in groupName:
-                setattr(self, groupName, SnirfClass.NirsClass.DataClass)
-            elif "metaDataTags" in groupName:
-                setattr(self, groupName, SnirfClass.NirsClass.MetaDataTagsClass)
-            elif "measurementList" in groupName:
-                setattr(self, groupName, SnirfClass.NirsClass.DataClass.MeasurementListClass)
-            else:
-                return
-
 
 def printDataset(oneClass):
     for attribute in oneClass.__dict__.keys():
