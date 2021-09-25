@@ -23,7 +23,7 @@ class DataClass:
     def __init__(self):
         return
 
-    def addgroup(self, groupName):
+    def addGroup(self, groupName):
         if "measurementList" in groupName:
             setattr(self, groupName, MeasurementListClass)
         else:
@@ -168,19 +168,19 @@ def SnirfSave(snirfObject, pathName):
         for field in groupObj.__dict__.keys():
             if field[:2] != '__' and 'addGroup' not in field and 'Print' not in field:
                 if isinstance(getattr(groupObj, field), type):
-                    writeGroup(grp, eval('groupObj.' + field), field)
+                    writeGroup(grp, getattr(groupObj, field), field)
                 else:
                     if isinstance(getattr(groupObj, field), str):
                         grp.create_dataset(field, data=[eval('groupObj.' + field + ".encode('UTF-8')")])
                     elif isinstance(getattr(groupObj, field), np.ndarray):
                         if isinstance(getattr(groupObj, field)[0], str):
-                            grpField = eval('groupObj.' + field)
+                            grpField = getattr(groupObj, field)
                             strArray = [grpField[i].encode('UTF-8') for i in range(grpField.size)]
                             grp.create_dataset(field, data=strArray)
                         else:
-                            grp.create_dataset(field, data=eval('groupObj.' + field))
+                            grp.create_dataset(field, data=getattr(groupObj, field))
                     else:
-                        grp.create_dataset(field, data=eval('groupObj.' + field))
+                        grp.create_dataset(field, data=getattr(groupObj, field))
         return f
 
     if isinstance(snirfObject, type):
@@ -202,9 +202,9 @@ def SnirfSave(snirfObject, pathName):
         for attribute in snirfObject.__dict__.keys():
             if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
                 if isinstance(getattr(snirfObject, attribute), type):
-                    f = writeGroup(f, eval('oneSnirf.' + attribute), attribute)
+                    f = writeGroup(f, getattr(snirfObject, attribute), attribute)
                 else:
-                    f.create_dataset(attribute, data=[eval('oneSnirf.' + attribute)])
+                    f.create_dataset(attribute, data=getattr(snirfObject, attribute))
 
 def main():
     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
