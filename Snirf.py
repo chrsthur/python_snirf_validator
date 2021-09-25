@@ -1,10 +1,6 @@
 import h5py as h5py
 import numpy as np
-import re
 from colorama import Fore, Style
-import sys
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
 
 
 class NirsClass:
@@ -37,17 +33,17 @@ class NirsClass:
 
     def addGroup(self, groupName):
         if "aux" in groupName:
-            setattr(self, groupName, SnirfClass.NirsClass.AuxClass)
+            setattr(self, groupName, NirsClass.AuxClass)
         elif "probe" in groupName:
-            setattr(self, groupName, SnirfClass.NirsClass.ProbeClass)
+            setattr(self, groupName, NirsClass.ProbeClass)
         elif "stim" in groupName:
-            setattr(self, groupName, SnirfClass.NirsClass.StimClass)
+            setattr(self, groupName, NirsClass.StimClass)
         elif "data" in groupName:
-            setattr(self, groupName, SnirfClass.NirsClass.DataClass)
+            setattr(self, groupName, NirsClass.DataClass)
         elif "metaDataTags" in groupName:
-            setattr(self, groupName, SnirfClass.NirsClass.MetaDataTagsClass)
+            setattr(self, groupName, NirsClass.MetaDataTagsClass)
         elif "measurementList" in groupName:
-            setattr(self, groupName, SnirfClass.NirsClass.DataClass.MeasurementListClass)
+            setattr(self, groupName, NirsClass.DataClass.MeasurementListClass)
         else:
             return
 
@@ -57,7 +53,7 @@ class SnirfClass:
         return
 
     def addGroup(self, groupName):
-        setattr(self, groupName, SnirfClass.NirsClass)
+        setattr(self, groupName, NirsClass)
 
 def printDataset(oneClass):
     for attribute in oneClass.__dict__.keys():
