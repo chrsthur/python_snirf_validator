@@ -96,42 +96,23 @@ def SnirfLoad(filePath):
     def getData(gID):
         # check actual data type and dimension, and print accordingly
         if h5py.check_string_dtype(gID.dtype):  # string
-            actualDim = gID.ndim
             if gID.len() == 1:
                 data = gID[0].decode('ascii')
-                msg = Fore.CYAN + '\t\tHDF5-STRING'
             else:
                 data = []
                 for y in gID:
                     data.append(y.decode('ascii'))
                 data = np.array(data)
-                msg = Fore.CYAN + '\t\tHDF5-STRING 1D-Array'
         else:
             data = gID[()]
-            if gID.ndim == 2:
-                msg = Fore.CYAN + '\t\tHDF5-FLOAT 2D-Array'
-                actualDim = gID.ndim
-            elif gID.ndim == 1:  # always a float
-                dimension = gID.shape
-                if dimension[0] == 1:
-                    msg = Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array'
-                    actualDim = 0
-                else:
-                    msg = Fore.CYAN + '\t\tHDF5-FLOAT Point'
-                    actualDim = gID.ndim
-            elif gID.ndim == 0:
-                msg = Fore.CYAN + '\t\tHDF5-Integer'
-                actualDim = gID.ndim
-            else:
-                return
-        return actualDim, data, msg
+        return data
 
     def buildDataset(oneClass, oneGroup):
         if isinstance(oneGroup, h5py.Group):
             for xx in oneGroup.keys():
                 oneDataset = oneGroup[xx]
                 if isinstance(oneDataset, h5py.Dataset):
-                    [actualDim, data, msg] = getData(oneDataset)
+                    data = getData(oneDataset)
                     setattr(oneClass, xx, data)
                 else:
                     setattr(oneClass, xx, MeasurementListClass)
@@ -209,10 +190,10 @@ def SnirfSave(snirfObject, pathName):
                 else:
                     f = writeDataset(f, snirfObject, attribute)
 
-# def main():
-#     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
-#     test = SnirfLoad((filePath))
-#     SnirfSave(test, '/Users/andyzjc/Downloads/test2.snirf')
-#     return test
-#
-# test = main()
+def main():
+    filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
+    test = SnirfLoad((filePath))
+    SnirfSave(test, '/Users/andyzjc/Downloads/test2.snirf')
+    return test
+
+test = main()
