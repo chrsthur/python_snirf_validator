@@ -2,7 +2,6 @@ import h5py as h5py
 import numpy as np
 from colorama import Fore, Style
 
-
 class NirsClass:
     def __init__(self):
         return
@@ -45,6 +44,7 @@ class NirsClass:
         elif "measurementList" in groupName:
             setattr(self, groupName, NirsClass.DataClass.MeasurementListClass)
         else:
+            print('Please Add a Valid Group!')
             return
 
 class SnirfClass:
@@ -55,7 +55,7 @@ class SnirfClass:
     def addGroup(self, groupName):
         setattr(self, groupName, NirsClass)
 
-def printDataset(oneClass):
+def printClass(oneClass):
     for attribute in oneClass.__dict__.keys():
         if attribute[:2] != '__':
             value = getattr(oneClass, attribute)
@@ -64,6 +64,9 @@ def printDataset(oneClass):
             else:
                 print(attribute + ':')
                 value.Print(self=value)
+
+def printDataset(oneDataset):
+    return
 
 def buildSnirfClass(filePath):
 
@@ -166,11 +169,11 @@ def saveSnirfClass(snirfObject, fName):
                 else:
                     f.create_dataset(attribute, data=[eval('oneSnirf.' + attribute)])
 
-# def main():
-#     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
-#     test = buildSnirfClass((filePath))
-#
-#     return test
-#
-# test = main()
-# print(test)
+def main():
+    filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
+    test = buildSnirfClass((filePath))
+
+    return test
+
+test = main()
+print(test)

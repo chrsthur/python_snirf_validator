@@ -6,96 +6,6 @@ import sys
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-
-def printDataset(oneClass):
-    for attribute in oneClass.__dict__.keys():
-        if attribute[:2] != '__':
-            value = getattr(oneClass, attribute)
-            if not callable(value):
-                print('\t' + attribute, '=', value)
-
-
-class auxClass:
-    def Print(self):
-        printDataset(self)
-
-
-class probeClass:
-    def Print(self):
-        printDataset(self)
-
-
-class stimClass:
-    def Print(self):
-        printDataset(self)
-
-
-class dataClass:
-    def Print(self):
-        for attribute in self.__dict__.keys():
-            if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
-                value = getattr(self, attribute)
-                if not callable(value):
-                    print(attribute, '=', value)
-                else:
-                    print('\t' + attribute + ':')
-                    value.Print(self=value)
-
-
-class metaDataTagsClass:
-    def Print(self):
-        printDataset(self)
-
-
-class measurementListClass:
-    def Print(self):
-        printDataset(self)
-
-
-class nirsClass:
-
-    def addGroup(self, groupName):
-        if "aux" in groupName:
-            setattr(self, groupName, auxClass)
-        elif "probe" in groupName:
-            setattr(self, groupName, probeClass)
-        elif "stim" in groupName:
-            setattr(self, groupName, stimClass)
-        elif "data" in groupName:
-            setattr(self, groupName, dataClass)
-        elif "metaDataTags" in groupName:
-            setattr(self, groupName, metaDataTagsClass)
-        elif "measurementList" in groupName:
-            setattr(self, groupName, measurementListClass)
-        else:
-            return
-
-    def Print(self):
-        for attribute in self.__dict__.keys():
-            if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
-                value = getattr(self, attribute)
-                if not callable(value):
-                    print(attribute, '=', value)
-                else:
-                    print(attribute + ':')
-                    value.Print(self=value)
-
-
-class snirfClass:
-    def addGroup(self, groupName):
-        setattr(self, groupName, nirsClass)
-
-    def Print(self):
-        for attribute in self.__dict__.keys():
-            if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
-                value = getattr(self, attribute)
-                if not callable(value):
-                    print(attribute, '=', value)
-                else:
-                    print(attribute + ':')
-                    value.Print(self=value)
-
-
 def getData(gID):
     # check actual data type and dimension, and print accordingly
     if h5py.check_string_dtype(gID.dtype):  # string
@@ -129,8 +39,8 @@ def getData(gID):
             return
     return actualDim, data, msg
 
-
 def validate(fileID):
+
     def CheckDataset(gID):
 
         # check spec datatype and dimension
@@ -328,12 +238,18 @@ def validate(fileID):
 
         return specType, specDim
 
+
     completeDatasetList = []
+
+    # critical
     missingList = []
+    invalidDatasetTypeList = []
+
+    # warning
     invalidGroupNameList = []
     invalidDatasetNameList = []
     invalidDatasetDimList = []
-    invalidDatasetTypeList = []
+
 
     getAllNames(fileID)
 
@@ -361,40 +277,6 @@ def validate(fileID):
 
     return completeDatasetList, Decision
 
-
-def buildDataset(oneClass, oneGroup):
-    if isinstance(oneGroup, h5py.Group):
-        for xx in oneGroup.keys():
-            oneDataset = oneGroup[xx]
-            if isinstance(oneDataset, h5py.Dataset):
-                [actualDim, data, msg] = getData(oneDataset)
-                setattr(oneClass, xx, data)
-            else:
-                setattr(oneClass, xx, measurementListClass)
-                newClass = getattr(oneClass, xx)
-                buildDataset(newClass, oneDataset)
-
-    return oneClass
-
-
-def buildSnirf(fileID):
-    # generate snirf class
-    oneSnirf = snirfClass
-    for ii in fileID.keys():
-        oneName = fileID[ii]
-        if isinstance(oneName, h5py.Group):
-            for jj in oneName.keys():  # /nirs
-                oneSnirf.addGroup(self=oneSnirf, groupName=ii)
-                oneNirs = getattr(oneSnirf, ii)
-                oneNirs.addGroup(self=oneNirs, groupName=jj)
-                buildDataset(getattr(oneNirs, jj), oneName[jj])
-        else:
-            if h5py.check_string_dtype(oneName.dtype):
-                setattr(oneSnirf, ii, oneName[0].decode('ascii'))
-
-    return oneSnirf
-
-
 def main():
     # Load File
     if sys.argv.__len__() > 1:
@@ -410,9 +292,6 @@ def main():
     # import file
     fileID = h5py.File(fileName, 'r')
 
-    # generate snirf class
-    oneSnirf = buildSnirf(fileID)
-
     # validate
     [CompleteDatasetList, Decision] = validate(fileID)
 
@@ -423,44 +302,6 @@ def main():
         print(Fore.RED + fileName + " is invalid!")
 
     print(Style.RESET_ALL)
-    return CompleteDatasetList, oneSnirf, fileName
+    return CompleteDatasetList, fileName
 
-
-def writeGroup(f, groupObj, attribute):
-    grp = f.create_group(attribute)
-
-    for field in groupObj.__dict__.keys():
-        if field[:2] != '__' and 'addGroup' not in field and 'Print' not in field:
-            if isinstance(getattr(groupObj, field), type):
-                writeGroup(grp, eval('groupObj.' + field), field)
-            else:
-                if isinstance(getattr(groupObj, field), str):
-                    grp.create_dataset(field, data=[eval('groupObj.' + field + ".encode('UTF-8')")])
-                elif isinstance(getattr(groupObj, field), np.ndarray):
-                    if isinstance(getattr(groupObj, field)[0], str):
-                        grpField = eval('groupObj.' + field)
-                        strArray = [grpField[i].encode('UTF-8') for i in range(grpField.size)]
-                        grp.create_dataset(field, data=strArray)
-                    else:
-                        grp.create_dataset(field, data=eval('groupObj.' + field))
-                else:
-                    grp.create_dataset(field, data=eval('groupObj.' + field))
-
-    return f
-
-
-def saveSnirfClass(snirfObject, fName):
-    fname = fName.replace(".snirf", "") + "_validated.snirf"
-
-    with h5py.File(fname, 'w') as f:
-        for attribute in snirfObject.__dict__.keys():
-            if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
-                if isinstance(getattr(snirfObject, attribute), type):
-                    f = writeGroup(f, eval('oneSnirf.' + attribute), attribute)
-                else:
-                    f.create_dataset(attribute, data=[eval('oneSnirf.' + attribute)])
-
-
-[CompleteDatasetList, oneSnirf, fileName] = main()
-# oneSnirf.Print(self=oneSnirf)
-saveSnirfClass(oneSnirf, fileName)
+[CompleteDatasetList, fileName] = main()
