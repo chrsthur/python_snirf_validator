@@ -162,6 +162,20 @@ def SnirfLoad(filePath):
 
 def SnirfSave(snirfObject, pathName):
 
+    def writeDataset(grp,groupObj,field):
+        if isinstance(getattr(groupObj, field), str):
+            grp.create_dataset(field, data=[eval('groupObj.' + field + ".encode('UTF-8')")])
+        elif isinstance(getattr(groupObj, field), np.ndarray):
+            if isinstance(getattr(groupObj, field)[0], str):
+                grpField = getattr(groupObj, field)
+                strArray = [grpField[i].encode('UTF-8') for i in range(grpField.size)]
+                grp.create_dataset(field, data=strArray)
+            else:
+                grp.create_dataset(field, data=getattr(groupObj, field))
+        else:
+            grp.create_dataset(field, data=getattr(groupObj, field))
+        return grp
+
     def writeGroup(f, groupObj, attribute):
         grp = f.create_group(attribute)
 
@@ -170,21 +184,10 @@ def SnirfSave(snirfObject, pathName):
                 if isinstance(getattr(groupObj, field), type):
                     writeGroup(grp, getattr(groupObj, field), field)
                 else:
-                    if isinstance(getattr(groupObj, field), str):
-                        grp.create_dataset(field, data=[eval('groupObj.' + field + ".encode('UTF-8')")])
-                    elif isinstance(getattr(groupObj, field), np.ndarray):
-                        if isinstance(getattr(groupObj, field)[0], str):
-                            grpField = getattr(groupObj, field)
-                            strArray = [grpField[i].encode('UTF-8') for i in range(grpField.size)]
-                            grp.create_dataset(field, data=strArray)
-                        else:
-                            grp.create_dataset(field, data=getattr(groupObj, field))
-                    else:
-                        grp.create_dataset(field, data=getattr(groupObj, field))
+                    grp = writeDataset(grp, groupObj, field)
         return f
 
     if isinstance(snirfObject, type):
-        fname = pathName.replace(".snirf", "")
         if snirfObject.__name__ != 'SnirfClass':
             print(Fore.RED + 'Please input a Valid SNIRF Class Object!')
             return
@@ -198,18 +201,18 @@ def SnirfSave(snirfObject, pathName):
         print(Fore.RED + 'Please input a Valid Class Object!')
         return
 
-    with h5py.File(fname, 'w') as f:
+    with h5py.File(pathName, 'w') as f:
         for attribute in snirfObject.__dict__.keys():
             if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
                 if isinstance(getattr(snirfObject, attribute), type):
                     f = writeGroup(f, getattr(snirfObject, attribute), attribute)
                 else:
-                    f.create_dataset(attribute, data=getattr(snirfObject, attribute))
+                    f = writeDataset(f, snirfObject, attribute)
 
 def main():
     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
     test = SnirfLoad((filePath))
-    SnirfSave(test, '/Users/andyzjc/Downloads/test.snirf')
+    SnirfSave(test, '/Users/andyzjc/Downloads/test2.snirf')
     return test
 
 test = main()

@@ -6,40 +6,40 @@ import sys
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-def getData(gID):
-    # check actual data type and dimension, and print accordingly
-    if h5py.check_string_dtype(gID.dtype):  # string
-        actualDim = gID.ndim
-        if gID.len() == 1:
-            data = gID[0].decode('ascii')
-            msg = Fore.CYAN + '\t\tHDF5-STRING'
-        else:
-            data = []
-            for y in gID:
-                data.append(y.decode('ascii'))
-            data = np.array(data)
-            msg = Fore.CYAN + '\t\tHDF5-STRING 1D-Array'
-    else:
-        data = gID[()]
-        if gID.ndim == 2:
-            msg = Fore.CYAN + '\t\tHDF5-FLOAT 2D-Array'
-            actualDim = gID.ndim
-        elif gID.ndim == 1:  # always a float
-            dimension = gID.shape
-            if dimension[0] == 1:
-                msg = Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array'
-                actualDim = 0
-            else:
-                msg = Fore.CYAN + '\t\tHDF5-FLOAT Point'
-                actualDim = gID.ndim
-        elif gID.ndim == 0:
-            msg = Fore.CYAN + '\t\tHDF5-Integer'
-            actualDim = gID.ndim
-        else:
-            return
-    return actualDim, data, msg
-
 def validate(fileID):
+
+    def getData(gID):
+        # check actual data type and dimension, and print accordingly
+        if h5py.check_string_dtype(gID.dtype):  # string
+            actualDim = gID.ndim
+            if gID.len() == 1:
+                data = gID[0].decode('ascii')
+                msg = Fore.CYAN + '\t\tHDF5-STRING'
+            else:
+                data = []
+                for y in gID:
+                    data.append(y.decode('ascii'))
+                data = np.array(data)
+                msg = Fore.CYAN + '\t\tHDF5-STRING 1D-Array'
+        else:
+            data = gID[()]
+            if gID.ndim == 2:
+                msg = Fore.CYAN + '\t\tHDF5-FLOAT 2D-Array'
+                actualDim = gID.ndim
+            elif gID.ndim == 1:  # always a float
+                dimension = gID.shape
+                if dimension[0] == 1:
+                    msg = Fore.CYAN + '\t\tHDF5-FLOAT 1D-Array'
+                    actualDim = 0
+                else:
+                    msg = Fore.CYAN + '\t\tHDF5-FLOAT Point'
+                    actualDim = gID.ndim
+            elif gID.ndim == 0:
+                msg = Fore.CYAN + '\t\tHDF5-Integer'
+                actualDim = gID.ndim
+            else:
+                return
+        return actualDim, data, msg
 
     def CheckDataset(gID):
 
@@ -237,7 +237,6 @@ def validate(fileID):
             specType = float
 
         return specType, specDim
-
 
     completeDatasetList = []
 
