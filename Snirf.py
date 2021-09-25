@@ -1,6 +1,7 @@
 import h5py as h5py
 import numpy as np
-from colorama import Fore, Style
+from colorama import Fore
+import os
 
 class AuxClass:
     def __init__(self):
@@ -141,9 +142,10 @@ def SnirfLoad(filePath):
     if ".snirf" in filePath:
         fileID = h5py.File(filePath, 'r')
     else:
-        print(Fore.RED + "Invalid filepath!")
+        print(Fore.RED + "Please Input a Valid File (SNIRF)!")
+        return
 
-    # generate snirf class
+    # generate a SNIRF class
     oneSnirf = SnirfClass
     for ii in fileID.keys():
         oneName = fileID[ii]
@@ -158,7 +160,7 @@ def SnirfLoad(filePath):
                 setattr(oneSnirf, ii, oneName[0].decode('ascii'))
     return oneSnirf
 
-def SnirfSave(snirfObject, fName):
+def SnirfSave(snirfObject, pathName):
 
     def writeGroup(f, groupObj, attribute):
         grp = f.create_group(attribute)
@@ -181,7 +183,20 @@ def SnirfSave(snirfObject, fName):
                         grp.create_dataset(field, data=eval('groupObj.' + field))
         return f
 
-    fname = fName.replace(".snirf", "") + "_validated.snirf"
+    if isinstance(snirfObject, type):
+        fname = pathName.replace(".snirf", "")
+        if snirfObject.__name__ != 'SnirfClass':
+            print(Fore.RED + 'Please input a Valid SNIRF Class Object!')
+            return
+        if os.path.isfile(pathName):
+            print(Fore.RED + 'File already Exist! Please input Another Filename!')
+            return
+        if ".snirf" not in pathName:
+            print(Fore.RED + 'Please input a Valid file extension (SNIRF)!')
+            return
+    else:
+        print(Fore.RED + 'Please input a Valid Class Object!')
+        return
 
     with h5py.File(fname, 'w') as f:
         for attribute in snirfObject.__dict__.keys():
@@ -194,7 +209,7 @@ def SnirfSave(snirfObject, fName):
 def main():
     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
     test = SnirfLoad((filePath))
-
+    SnirfSave(test, '/Users/andyzjc/Downloads/test.snirf')
     return test
 
 test = main()
