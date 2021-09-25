@@ -108,7 +108,7 @@ def buildSnirfClass(filePath):
                     [actualDim, data, msg] = getData(oneDataset)
                     setattr(oneClass, xx, data)
                 else:
-                    setattr(oneClass, xx, SnirfClass.NirsClass.DataClass.MeasurementListClass)
+                    setattr(oneClass, xx, NirsClass.DataClass.MeasurementListClass)
                     newClass = getattr(oneClass, xx)
                     buildDataset(newClass, oneDataset)
         return oneClass
@@ -173,4 +173,4 @@ def saveSnirfClass(snirfObject, fName):
 #     return test
 #
 # test = main()
-#print(test)
+# print(test)
