@@ -6,7 +6,8 @@ import sys
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-def validate(fileID):
+def validate(fileName):
+    fileID = h5py.File(fileName, 'r')
 
     def getSpec(gID):
         # check spec dimension
@@ -252,30 +253,38 @@ def validate(fileID):
     invalidDatasetNameList = []
     invalidDatasetDimList = []
 
-
+    # validate starts
     getAllNames(fileID)
 
     Decision = True
     if np.size(invalidGroupNameList) > 0:
-        print(Fore.RED + "Invalid Group Detected: ")
-        print(Fore.RED + str(invalidGroupNameList) + '\n')
-        Decision = False
+        print(Fore.YELLOW + "Warning!")
+        print(Fore.YELLOW + "Invalid Group Detected: ")
+        print(Fore.YELLOW + str(invalidGroupNameList) + '\n')
     if np.size(missingList) > 0:
-        print(Fore.RED + "Missing Dataset/Group Detected: ")
+        print(Fore.RED + "Missing Required Dataset/Group Detected: ")
         print(Fore.RED + str(missingList) + '\n')
         Decision = False
     if np.size(invalidDatasetNameList) > 0:
-        print(Fore.RED + "Invalid Dateset Detected: ")
-        print(Fore.RED + str(invalidDatasetNameList) + '\n')
-        Decision = False
+        print(Fore.YELLOW + "Warning!")
+        print(Fore.YELLOW + "Invalid Dateset Detected: ")
+        print(Fore.YELLOW + str(invalidDatasetNameList) + '\n')
     if np.size(invalidDatasetTypeList) > 0:
         print(Fore.RED + "Invalid Dataset Data Type Detected: ")
         print(Fore.RED + str(invalidDatasetTypeList) + '\n')
         Decision = False
     if np.size(invalidDatasetDimList) > 0:
-        print(Fore.RED + "Invalid Dataset Dimension Detected: ")
-        print(Fore.RED + str(invalidDatasetDimList) + '\n')
-        Decision = False
+        print(Fore.YELLOW + "Warning!")
+        print(Fore.YELLOW + "Invalid Dataset Dimension Detected: ")
+        print(Fore.YELLOW + str(invalidDatasetDimList) + '\n')
+
+    print(Fore.WHITE + '----------------------------------')
+    if Decision:
+        print(Fore.GREEN + fileName + " is valid!")
+    else:
+        print(Fore.RED + fileName + " is invalid!")
+
+    print(Style.RESET_ALL)
 
     return completeDatasetList, Decision
 
@@ -291,19 +300,7 @@ def main():
         if not fileName:
             return None
 
-    # import file
-    fileID = h5py.File(fileName, 'r')
-
     # validate
-    [CompleteDatasetList, Decision] = validate(fileID)
+    validate(fileName)
 
-    print(Fore.WHITE + '----------------------------------')
-    if Decision:
-        print(Fore.GREEN + fileName + " is valid!")
-    else:
-        print(Fore.RED + fileName + " is invalid!")
-
-    print(Style.RESET_ALL)
-    return CompleteDatasetList, fileName
-
-[CompleteDatasetList, fileName] = main()
+main()
