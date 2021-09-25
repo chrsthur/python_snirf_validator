@@ -53,22 +53,39 @@ class SnirfClass:
         return
 
     def addGroup(self, groupName):
-        setattr(self, groupName, NirsClass)
+        if 'nirs' in groupName:
+            setattr(self, groupName, NirsClass)
+        else:
+            print('Please Add a Valid Group!')
+            return
 
 def printClass(oneClass):
-    for attribute in oneClass.__dict__.keys():
-        if attribute[:2] != '__':
-            value = getattr(oneClass, attribute)
-            if not callable(value):
-                print('\t' + attribute, '=', value)
-            else:
-                print(attribute + ':')
-                value.Print(self=value)
+    if isinstance(oneClass,type):
+        for attribute in oneClass.__dict__.keys():
+            if attribute[:2] != '__' and 'addGroup' not in attribute and 'Class' not in attribute:
+                value = getattr(oneClass, attribute)
+                if not callable(value):
+                    print('\t' + attribute, '=', value)
+                    if not isinstance(value, str):
+                        if value.ndim > 1:
+                            print('\t\t' + 'The shape is: ' + str(value.shape))
+                else:
+                    print(attribute + ':')
+                    printClass(value)
+    else:
+        print(Fore.RED + 'Please Input An Valid Class!')
+        return
 
-def printDataset(oneDataset):
-    return
+# def printDataset(oneDataset):
+#     if not isinstance(oneDataset, type) and type(oneDataset) == np.ndarray or str or int:
+#         print(oneDataset)
+#         if not isinstance(oneDataset, str):
+#             if oneDataset.ndim > 1:
+#                 print('\t\t' + 'The shape is: ' + str(oneDataset.shape))
+#     else:
+#         return
 
-def buildSnirfClass(filePath):
+def SnirfLoad(filePath):
 
     def getData(gID):
         # check actual data type and dimension, and print accordingly
@@ -136,7 +153,7 @@ def buildSnirfClass(filePath):
                 setattr(oneSnirf, ii, oneName[0].decode('ascii'))
     return oneSnirf
 
-def saveSnirfClass(snirfObject, fName):
+def SnirfSave(snirfObject, fName):
 
     def writeGroup(f, groupObj, attribute):
         grp = f.create_group(attribute)
@@ -171,9 +188,8 @@ def saveSnirfClass(snirfObject, fName):
 
 def main():
     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
-    test = buildSnirfClass((filePath))
+    test = SnirfLoad((filePath))
 
     return test
 
 test = main()
-print(test)
