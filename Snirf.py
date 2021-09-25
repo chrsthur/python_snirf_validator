@@ -2,47 +2,52 @@ import h5py as h5py
 import numpy as np
 from colorama import Fore, Style
 
+class AuxClass:
+    def __init__(self):
+        return
+
+class ProbeClass:
+    def __init__(self):
+        return
+
+class StimClass:
+    def __init__(self):
+        return
+
+class DataClass:
+    def __init__(self):
+        return
+
+    class MeasurementListClass:
+        def __init__(self):
+            return
+
+    def addgroup(self, groupName):
+        if "measurementList" in groupName:
+            setattr(self, groupName, DataClass.MeasurementListClass)
+        else:
+            print('Please Add a Valid measurementList!')
+            return
+
+class MetaDataTagsClass:
+    def __init__(self):
+        return
+
 class NirsClass:
     def __init__(self):
         return
 
-    class AuxClass:
-        def __init__(self):
-            return
-
-    class ProbeClass:
-        def __init__(self):
-            return
-
-    class StimClass:
-        def __init__(self):
-            return
-
-    class DataClass:
-        def __init__(self):
-            return
-
-        class MeasurementListClass:
-            def __init__(self):
-                return
-
-    class MetaDataTagsClass:
-        def __init__(self):
-            return
-
     def addGroup(self, groupName):
         if "aux" in groupName:
-            setattr(self, groupName, NirsClass.AuxClass)
+            setattr(self, groupName, AuxClass)
         elif "probe" in groupName:
-            setattr(self, groupName, NirsClass.ProbeClass)
+            setattr(self, groupName, ProbeClass)
         elif "stim" in groupName:
-            setattr(self, groupName, NirsClass.StimClass)
+            setattr(self, groupName, StimClass)
         elif "data" in groupName:
-            setattr(self, groupName, NirsClass.DataClass)
+            setattr(self, groupName, DataClass)
         elif "metaDataTags" in groupName:
-            setattr(self, groupName, NirsClass.MetaDataTagsClass)
-        elif "measurementList" in groupName:
-            setattr(self, groupName, NirsClass.DataClass.MeasurementListClass)
+            setattr(self, groupName, MetaDataTagsClass)
         else:
             print('Please Add a Valid Group!')
             return
@@ -56,7 +61,7 @@ class SnirfClass:
         if 'nirs' in groupName:
             setattr(self, groupName, NirsClass)
         else:
-            print('Please Add a Valid Group!')
+            print('Please Add a /Nirs Class!')
             return
 
 def printClass(oneClass):
@@ -128,7 +133,7 @@ def SnirfLoad(filePath):
                     [actualDim, data, msg] = getData(oneDataset)
                     setattr(oneClass, xx, data)
                 else:
-                    setattr(oneClass, xx, NirsClass.DataClass.MeasurementListClass)
+                    setattr(oneClass, xx, DataClass.MeasurementListClass)
                     newClass = getattr(oneClass, xx)
                     buildDataset(newClass, oneDataset)
         return oneClass
@@ -186,10 +191,10 @@ def SnirfSave(snirfObject, fName):
                 else:
                     f.create_dataset(attribute, data=[eval('oneSnirf.' + attribute)])
 
-# def main():
-#     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
-#     test = SnirfLoad((filePath))
-#
-#     return test
-#
-# test = main()
+def main():
+    filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
+    test = SnirfLoad((filePath))
+
+    return test
+
+test = main()
