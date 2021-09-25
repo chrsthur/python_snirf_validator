@@ -186,10 +186,10 @@ def SnirfSave(snirfObject, fName):
                 else:
                     f.create_dataset(attribute, data=[eval('oneSnirf.' + attribute)])
 
-def main():
-    filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
-    test = SnirfLoad((filePath))
-
-    return test
-
-test = main()
+# def main():
+#     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
+#     test = SnirfLoad((filePath))
+#
+#     return test
+#
+# test = main()
