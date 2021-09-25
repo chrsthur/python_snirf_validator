@@ -14,17 +14,17 @@ class StimClass:
     def __init__(self):
         return
 
+class MeasurementListClass:
+    def __init__(self):
+        return
+
 class DataClass:
     def __init__(self):
         return
 
-    class MeasurementListClass:
-        def __init__(self):
-            return
-
     def addgroup(self, groupName):
         if "measurementList" in groupName:
-            setattr(self, groupName, DataClass.MeasurementListClass)
+            setattr(self, groupName, MeasurementListClass)
         else:
             print('Please Add a Valid measurementList!')
             return
@@ -133,7 +133,7 @@ def SnirfLoad(filePath):
                     [actualDim, data, msg] = getData(oneDataset)
                     setattr(oneClass, xx, data)
                 else:
-                    setattr(oneClass, xx, DataClass.MeasurementListClass)
+                    setattr(oneClass, xx, MeasurementListClass)
                     newClass = getattr(oneClass, xx)
                     buildDataset(newClass, oneDataset)
         return oneClass
