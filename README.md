@@ -1,7 +1,10 @@
->Snirf Validator
+Snirf Validator
 =============== 
->>Background
+Table of Contents
 ----------
+*[Introduction](#Introduction)
+
+
 
 
 
