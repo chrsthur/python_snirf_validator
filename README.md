@@ -38,6 +38,10 @@ Snirf.SnirfSave(oneSnirfClass,'/Users/Jiazhenliu/Desktop/testingresult.snirf')
 ## API
 
 ## Maintainers
+[@Christian Arthur :melon:](https://github.com/chrsthur)<br>
+[@Juncheng Zhang :tangerine:](https://github.com/andyzjc)<br>
+[@Jeonghoon Choi :pineapple:](https://github.com/jeonghoonchoi)<br>
+[@Jiazhen Liu :grapes:](https://github.com/ELISALJZ)<br>
 
 ## Contributors
 
