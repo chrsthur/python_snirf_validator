@@ -2,7 +2,15 @@ Snirf Validator
 =============== 
 Table of Contents
 ----------
-*[Introduction](#Introduction)
+-[Background](#background)
+-[Installation](#install)
+-[Usage](#usage)
+-[API](#api)
+-[Maintainers](#maintainers)
+-[License](#license)
+
+
+
 
 
 
