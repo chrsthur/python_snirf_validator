@@ -1,4 +1,4 @@
-# Snirf Validator
+# Snirf Validator :microscope:
 
 ## Table of Contents
 
@@ -13,11 +13,11 @@
 - [License](#license)
 
 
-## Background
+## Background :bulb:
 
-## Installation
+## Installation :floppy_disk:
 
-## Usage
+## Usage :clipboard:
 The `Snirf.py` mainly performs two functions: read a snirf file and save the result. The saved file can pass: SNIRF validator, HDFviewer, and [Homer3](https://github.com/BUNPC/Homer3). The idea of how `snirf.py` works and a demo of how to use can be found below.
 ### Flowchart
 [![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbiAgIEFbRklsZSBVcGxvYWRdIC0tPiBCe0ZpbGUgVmFsaWRhdGlvbn1cbiAgIEIgLS0-IENbVmFsaWRdIC0tPiBFW1JlYWQgdGhlIEZpbGVdIC0tPkZbU2F2ZSB0aGUgRklsZV1cbiAgIEIgLS0-IERbTm90IFZhbGlkXSAtLT4gR1tSZWplY3RdXG4iLCJtZXJtYWlkIjp7InRoZW1lIjoiZGVmYXVsdCJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbiAgIEFbRklsZSBVcGxvYWRdIC0tPiBCe0ZpbGUgVmFsaWRhdGlvbn1cbiAgIEIgLS0-IENbVmFsaWRdIC0tPiBFW1JlYWQgdGhlIEZpbGVdIC0tPkZbU2F2ZSB0aGUgRklsZV1cbiAgIEIgLS0-IERbTm90IFZhbGlkXSAtLT4gR1tSZWplY3RdXG4iLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGVmYXVsdFwiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
@@ -37,13 +37,13 @@ Snirf.SnirfSave(oneSnirfClass,'/Users/Jiazhenliu/Desktop/testingresult.snirf')
 
 ## API
 
-## Maintainers
+## Maintainers :hammer_and_wrench:
 [@Christian Arthur :melon:](https://github.com/chrsthur)<br>
 [@Juncheng Zhang :tangerine:](https://github.com/andyzjc)<br>
 [@Jeonghoon Choi :pineapple:](https://github.com/jeonghoonchoi)<br>
 [@Jiazhen Liu :grapes:](https://github.com/ELISALJZ)<br>
 
-## Contributors
+## Contributors :sparkler:
 
 ## License
 
