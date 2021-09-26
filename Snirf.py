@@ -22,13 +22,14 @@ class DataClass:
         if "measurementList" in groupName:
             setattr(self, groupName, MeasurementListClass())
         else:
-            print('Please Add a Valid measurementList!')
+            print(Fore.RED + 'Please Add a Valid measurementListClass!')
             return
 
 class MetaDataTagsClass:
     pass
 
 class NirsClass:
+    pass
 
     def addGroup(self, groupName):
         if "aux" in groupName:
@@ -42,23 +43,21 @@ class NirsClass:
         elif "metaDataTags" in groupName:
             setattr(self, groupName, MetaDataTagsClass())
         else:
-            print('Please Add a Valid Group!')
+            print(Fore.RED + 'Please Add a Valid Group!')
             return
 
 class SnirfClass:
-
-    def __init__(self):
-        return
+    pass
 
     def addGroup(self, groupName):
         if 'nirs' in groupName:
-            setattr(self, groupName, NirsClass)
+            setattr(self, groupName, NirsClass())
         else:
-            print('Please Add a /Nirs Class!')
+            print(Fore.RED + 'Please Add a /Nirs Class!')
             return
 
 def printClass(oneClass):
-    if isinstance(oneClass,type):
+    if hasattr(oneClass, '__dict__') or hasattr(oneClass, '__slots__'):
         for attribute in oneClass.__dict__.keys():
             if attribute[:2] != '__' and 'addGroup' not in attribute and 'Class' not in attribute:
                 value = getattr(oneClass, attribute)
@@ -122,14 +121,14 @@ def SnirfLoad(filePath):
         return
 
     # generate a SNIRF class
-    oneSnirf = SnirfClass
+    oneSnirf = SnirfClass()
     for ii in fileID.keys():
         oneName = fileID[ii]
         if isinstance(oneName, h5py.Group):
+            oneSnirf.addGroup(ii)
+            oneNirs = getattr(oneSnirf, ii)
             for jj in oneName.keys():  # /nirs
-                oneSnirf.addGroup(self=oneSnirf, groupName=ii)
-                oneNirs = getattr(oneSnirf, ii)
-                oneNirs.addGroup(self=oneNirs, groupName=jj)
+                oneNirs.addGroup(jj)
                 buildDataset(getattr(oneNirs, jj), oneName[jj])
         else:
             if h5py.check_string_dtype(oneName.dtype):
@@ -157,14 +156,15 @@ def SnirfSave(snirfObject, pathName):
 
         for field in groupObj.__dict__.keys():
             if field[:2] != '__' and 'addGroup' not in field and 'Print' not in field:
-                if isinstance(getattr(groupObj, field), type):
+                oneClass = getattr(groupObj, field)
+                if hasattr(oneClass, '__dict__') or hasattr(oneClass, '__slots__'):
                     writeGroup(grp, getattr(groupObj, field), field)
                 else:
                     grp = writeDataset(grp, groupObj, field)
         return f
 
-    if isinstance(snirfObject, type):
-        if snirfObject.__name__ != 'SnirfClass':
+    if hasattr(snirfObject, '__dict__') or hasattr(snirfObject, '__slots__'):
+        if type(snirfObject).__name__ != 'SnirfClass':
             print(Fore.RED + 'Please input a Valid SNIRF Class Object!')
             return
         if os.path.isfile(pathName):
@@ -180,14 +180,18 @@ def SnirfSave(snirfObject, pathName):
     with h5py.File(pathName, 'w') as f:
         for attribute in snirfObject.__dict__.keys():
             if attribute[:2] != '__' and 'addGroup' not in attribute and 'Print' not in attribute:
-                if isinstance(getattr(snirfObject, attribute), type):
+                oneClass = getattr(snirfObject, attribute)
+                if hasattr(oneClass, '__dict__') or hasattr(oneClass, '__slots__'):
                     f = writeGroup(f, getattr(snirfObject, attribute), attribute)
                 else:
                     f = writeDataset(f, snirfObject, attribute)
 
-# def main():
-#     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
-#     test = SnirfLoad((filePath))
-#     return test
-#
-# test = main()
+def main():
+    filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
+    test = SnirfLoad((filePath))
+    printClass(test.nirs.data1.measurementList1)
+    test.addGroup('')
+    SnirfSave(test, '/Users/andyzjc/Downloads/test6.snirf')
+    return test
+
+test = main()
