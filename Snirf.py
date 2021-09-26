@@ -186,12 +186,12 @@ def SnirfSave(snirfObject, pathName):
                 else:
                     f = writeDataset(f, snirfObject, attribute)
 
-def main():
-    filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
-    test = SnirfLoad((filePath))
-    printClass(test.nirs.data1.measurementList1)
-    test.addGroup('')
-    SnirfSave(test, '/Users/andyzjc/Downloads/test6.snirf')
-    return test
-
-test = main()
+# def main():
+#     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
+#     test = SnirfLoad((filePath))
+#     printClass(test.nirs.data1.measurementList1)
+#     test.addGroup('')
+#     SnirfSave(test, '/Users/andyzjc/Downloads/test6.snirf')
+#     return test
+#
+# test = main()
