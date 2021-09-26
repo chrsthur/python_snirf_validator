@@ -285,10 +285,9 @@ def validate(filePath):
         print(Fore.GREEN + filePath + " is valid!")
     else:
         print(Fore.RED + filePath + " is invalid!")
-
     print(Style.RESET_ALL)
 
-    return completeDatasetList, Decision
+    return completeDatasetList
 
 def main():
     # Load File
