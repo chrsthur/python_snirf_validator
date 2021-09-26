@@ -5,12 +5,13 @@
 - [Background](#background)
 - [Installation](#install)
 - [Usage](#usage)
+        -[Flowchart](#flowchart)
+        -[Demo](#demo)
 - [API](#api)
 - [Maintainers](#maintainers)
 - [Contributors](#contributers)
 - [License](#license)
 
-========================
 
 ## Background
 
