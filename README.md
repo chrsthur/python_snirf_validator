@@ -2,11 +2,11 @@
 
 ## Table of Contents
 
-- .[Background].(#background)
+- [Background](#background)
 - [Installation](#install)
 - [Usage](#usage)
-         - [Flowchart](#flowchart)
-         - [Demo](#demo)
+ - [Flowchart](#flowchart)
+ - [Demo](#demo)
 - [API](#api)
 - [Maintainers](#maintainers)
 - [Contributors](#contributers)
