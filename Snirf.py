@@ -4,51 +4,43 @@ from colorama import Fore
 import os
 
 class AuxClass:
-    def __init__(self):
-        return
+    pass
 
 class ProbeClass:
-    def __init__(self):
-        return
+    pass
 
 class StimClass:
-    def __init__(self):
-        return
+    pass
 
 class MeasurementListClass:
-    def __init__(self):
-        return
+    pass
 
 class DataClass:
-    def __init__(self):
-        return
+    pass
 
     def addGroup(self, groupName):
         if "measurementList" in groupName:
-            setattr(self, groupName, MeasurementListClass)
+            setattr(self, groupName, MeasurementListClass())
         else:
             print('Please Add a Valid measurementList!')
             return
 
 class MetaDataTagsClass:
-    def __init__(self):
-        return
+    pass
 
 class NirsClass:
-    def __init__(self):
-        return
 
     def addGroup(self, groupName):
         if "aux" in groupName:
-            setattr(self, groupName, AuxClass)
+            setattr(self, groupName, AuxClass())
         elif "probe" in groupName:
-            setattr(self, groupName, ProbeClass)
+            setattr(self, groupName, ProbeClass())
         elif "stim" in groupName:
-            setattr(self, groupName, StimClass)
+            setattr(self, groupName, StimClass())
         elif "data" in groupName:
-            setattr(self, groupName, DataClass)
+            setattr(self, groupName, DataClass())
         elif "metaDataTags" in groupName:
-            setattr(self, groupName, MetaDataTagsClass)
+            setattr(self, groupName, MetaDataTagsClass())
         else:
             print('Please Add a Valid Group!')
             return
@@ -115,9 +107,12 @@ def SnirfLoad(filePath):
                     data = getData(oneDataset)
                     setattr(oneClass, xx, data)
                 else:
-                    setattr(oneClass, xx, MeasurementListClass)
-                    newClass = getattr(oneClass, xx)
-                    buildDataset(newClass, oneDataset)
+                    if 'measurementList' in xx:
+                        setattr(oneClass, xx, MeasurementListClass())
+                        newClass = getattr(oneClass, xx)
+                        buildDataset(newClass, oneDataset)
+                    else:
+                        return
         return oneClass
 
     if ".snirf" in filePath:
@@ -193,7 +188,6 @@ def SnirfSave(snirfObject, pathName):
 # def main():
 #     filePath = '/Users/andyzjc/Downloads/SeniorProject/SampleData/Homer3Example/homerexample_modified.snirf'
 #     test = SnirfLoad((filePath))
-#     SnirfSave(test, '/Users/andyzjc/Downloads/test2.snirf')
 #     return test
 #
 # test = main()
