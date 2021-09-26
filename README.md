@@ -44,6 +44,31 @@ Snirf.SnirfSave(oneSnirfClass,'/Users/Jiazhenliu/Desktop/testingresult.snirf')
 [@Jiazhen Liu :grapes:](https://github.com/ELISALJZ)<br>
 
 ## Contributors :sparkler:
+This project exsists thanks to all people who contribute. <br>
+<a href="https://github.com/sstucker">
+<img src="https://github.com/sstucker.png" width="48">
+</a>
+
+<a href="https://github.com/rob-luke">
+<img src="https://github.com/rob-luke.png" width="48">
+</a>
+
+<a href="https://github.com/chrsthur">
+<img src="https://github.com/chrsthur.png" width="48">
+</a>
+
+<a href="https://github.com/andyzjc">
+<img src="https://github.com/andyzjc.png" width="48">
+</a>
+
+<a href="https://github.com/jeonghoonchoi">
+<img src="https://github.com/jeonghoonchoi.png" width="48">
+</a>
+
+<a href="https://github.com/ELISALJZ">
+<img src="https://github.com/ELISALJZ.png" width="48">
+</a>
+
 
 ## License
 
