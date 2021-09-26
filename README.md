@@ -1,7 +1,7 @@
-Snirf Validator
-=============== 
-Table of Contents
-----------
+#Snirf Validator
+
+##Table of Contents
+
 -[Background](#background)
 -[Installation](#install)
 -[Usage](#usage)
