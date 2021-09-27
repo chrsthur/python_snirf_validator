@@ -43,8 +43,6 @@ Snirf.SnirfSave(oneSnirfClass,'/Users/Jiazhenliu/Desktop/testingresult.snirf')
 [@Jeonghoon Choi :pineapple:](https://github.com/jeonghoonchoi)<br>
 [@Jiazhen Liu :grapes:](https://github.com/ELISALJZ)<br>
 
-## Contributors :sparkler:
-This project exsists thanks to all people who contribute.
 
 ## License
 
